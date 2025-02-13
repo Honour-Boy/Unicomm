@@ -17,7 +17,7 @@ import {
 import { db } from "../Firebase/firebase";
 import useChatStore from "../Firebase/chatStore";
 import { searchIcon, plusIcon } from "../../assets";
-import { format, set } from "date-fns";
+import { format } from "timeago.js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoadingSpinner from "../Common/LoadingComponent";
@@ -25,9 +25,7 @@ import LoadingSpinner from "../Common/LoadingComponent";
 const ChatList = () => {
   const [chats, setChats] = useState([]);
   const [input, setInput] = useState("");
-  const [toastify, setToast] = useState(
-    "Click on the plus button to add users"
-  );
+  const [toastify, setToast] = useState();
   const { currentUser } = useUserStore();
   const { changeChat } = useChatStore();
   const [user, setUser] = useState(null);
@@ -42,19 +40,22 @@ const ChatList = () => {
     const unSub = onSnapshot(
       doc(db, "userchats", currentUser.id),
       async (res) => {
-        const items = res.data()?.chats || [];
-
-        const promises = items.map(async (item) => {
+        const items = res.data() || [];
+        const promises = items.chats.map(async (item) => {
           const userDocRef = doc(db, "users", item.receiverId);
           const userDocSnap = await getDoc(userDocRef);
-
           const user = userDocSnap.data();
 
-          return { ...item, user };
+          const chatDocRef = doc(db, "chats", item.chatId);
+          const chatDocSnap = await getDoc(chatDocRef);
+          const messages = chatDocSnap.data()?.messages
+          const time = messages[messages.length - 1]?.createdAt || null;
+
+          return { ...item, user, lastUpdated: time, updatedAt: items.updatedAt };
         });
         const chatData = await Promise.all(promises);
 
-        setChats(chatData.sort((a, b) => b.updatedAt - a.updatedAt));
+        setChats(chatData.sort((a, b) => b.updatedAt.seconds - a.updatedAt.seconds));
       }
     );
 
@@ -79,7 +80,11 @@ const ChatList = () => {
             ...doc.data(),
             id: doc.id,
           }))
-          .filter((suggestion) => suggestion.id !== currentUser.id); // Filter out the current user
+          .filter(
+            (suggestion) =>
+              suggestion.id !== currentUser.id &&
+              !chats.some((chat) => chat.user.id === suggestion.id) // Exclude users already in chat list
+          );
 
         setSuggestions(suggestionList);
       } catch (err) {
@@ -88,7 +93,7 @@ const ChatList = () => {
     };
 
     fetchSuggestions();
-  }, [currentUser.id]);
+  }, [currentUser.id, chats]);
 
   const handleSearch = async () => {
     let username = input.trim();
@@ -130,7 +135,6 @@ const ChatList = () => {
       setToast("You cannot add yourself to the chat list.");
       return;
     }
-    console.log(userToAdd);
     setIsAdding(true);
     setToast("Adding user to chat list...");
     const chatRef = collection(db, "chats");
@@ -194,7 +198,6 @@ const ChatList = () => {
         updatedAt: timestamp,
       });
       setToast("User added successfully!");
-      setDisplay(true);
       setUser(null); // Reset the user state after adding
     } catch (err) {
       console.log(err); // Log any errors
@@ -203,8 +206,8 @@ const ChatList = () => {
     }
   };
 
-  const handleSelect = (chat) => {
-    changeChat(chat);
+  const handleSelect = (chatId, userInfo) => {
+    changeChat(chatId, userInfo);
   };
 
   const filteredChats = chats.filter((c) =>
@@ -217,18 +220,6 @@ const ChatList = () => {
       return words.slice(0, wordLimit).join(" ") + " ...";
     }
     return message;
-  };
-
-  const formatTime = (time) => {
-    console.log(time);
-    try {
-      if (!time) throw new Error("Invalid time value");
-      const date = new Date(time);
-      return format(date, "HH:mm");
-    } catch (error) {
-      console.error("Invalid date format:", error);
-      return "";
-    }
   };
 
   return (
@@ -307,7 +298,7 @@ const ChatList = () => {
           className={`flex w-full items-center gap-4 p-3 cursor-pointer border-y border-[#373737] ${
             !chat.isSeen && "bg-[#393939]"
           }`}
-          onClick={() => handleSelect(chat)}
+          onClick={() => handleSelect(chat.chatId, chat.user)}
         >
           <div className="user-avatar-small">
             <span className="text-lg font-bold">
@@ -320,8 +311,8 @@ const ChatList = () => {
               <span className="font-medium text-left text-white">
                 {chat.user.username}
               </span>
-              <span className="text-xs text-white">
-                {formatTime(chat.updatedAt)}
+              <span className="text-[10px] text-white">
+                {format(chat.lastUpdated?.toDate())}
               </span>
             </div>
             <div className="flex justify-between items-center">

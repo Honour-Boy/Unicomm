@@ -61,16 +61,18 @@ const Chat = () => {
     let translatedText = text; // Default to original text
 
     try {
-      if (currentUser.language !== user.language) {
-        const response = await axios.post("http://localhost:8001/translate", {
-          source_language: currentUserLang,
-          target_language: userLang,
-          text: text,
-        });
-
-        if (response.status === 200) {
-          translatedText = response.data["translated_text"];
-        }
+      const response = await axios.post(
+        "https://translate.flossboxin.org.in/translate",
+        {
+          q: text,
+          source: currentUserLang,
+          target: userLang,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      console.log(response);
+      if (response.status === 200) {
+        translatedText = response.data.translatedText;
       }
 
       if (chatId) {

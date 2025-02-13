@@ -60,6 +60,8 @@ function Login() {
     } catch (error) {
       console.error("Error with email sign-in:", error.message, error.stack);
       toast.error("Invalid email or password.");
+    } finally{
+      setLoading(false);
     }
   };
 

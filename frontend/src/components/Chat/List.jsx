@@ -3,7 +3,7 @@ import Userinfo from "./UserInfo"
 
 const List = () => {
   return (
-    <div className='w-[320px] h-screen max-h-screen'>
+    <div className='w-[450px] h-screen max-h-screen'>
       <Userinfo/>
       <ChatList/>
     </div>
