@@ -99,7 +99,7 @@ const Chat = () => {
 
             if (chatIndex !== -1) {
               userChatsData.chats[chatIndex].lastMessage = text;
-              userChatsData.chats[chatIndex].isSeen = id === currentUser.id;
+              userChatsData.chats[chatIndex].lastTranslatedMessage = translatedText;
               userChatsData.chats[chatIndex].updatedAt = Date.now();
 
               await updateDoc(userChatsRef, {

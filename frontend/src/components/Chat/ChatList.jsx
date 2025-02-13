@@ -50,8 +50,9 @@ const ChatList = () => {
           const chatDocSnap = await getDoc(chatDocRef);
           const messages = chatDocSnap.data()?.messages
           const time = messages[messages.length - 1]?.createdAt || null;
+          const lastId = messages[messages.length - 1]?.senderId || null;
 
-          return { ...item, user, lastUpdated: time, updatedAt: items.updatedAt };
+          return { ...item, user, lastUpdated: time, updatedAt: items.updatedAt, id: lastId };
         });
         const chatData = await Promise.all(promises);
 
@@ -181,7 +182,6 @@ const ChatList = () => {
         chats: arrayUnion({
           chatId: newChatRef.id,
           lastMessage: "",
-          lastTranslatedMessage: "",
           receiverId: currentUser.id,
         }),
         updatedAt: timestamp,
@@ -192,7 +192,6 @@ const ChatList = () => {
         chats: arrayUnion({
           chatId: newChatRef.id,
           lastMessage: "",
-          lastTranslatedMessage: "",
           receiverId: userToAdd.id,
         }),
         updatedAt: timestamp,
@@ -295,9 +294,7 @@ const ChatList = () => {
       {filteredChats.map((chat) => (
         <div
           key={chat.chatId}
-          className={`flex w-full items-center gap-4 p-3 cursor-pointer border-y border-[#373737] ${
-            !chat.isSeen && "bg-[#393939]"
-          }`}
+          className={`flex w-full items-center gap-4 p-3 cursor-pointer border-y border-[#373737]`}
           onClick={() => handleSelect(chat.chatId, chat.user)}
         >
           <div className="user-avatar-small">
@@ -319,11 +316,9 @@ const ChatList = () => {
               <p className="text-sm text-left font-light text-white">
                 {chat.user.blocked.includes(currentUser.id)
                   ? "Blocked"
-                  : truncateMessage(chat.lastMessage)}
+                  : chat.id === currentUser?.id ? truncateMessage(chat.lastMessage) : truncateMessage(chat.lastTranslatedMessage)}
               </p>
-              {!chat.isSeen && chat.lastMessage !== "" && (
-                <span className="bg-orange-300 rounded-full w-3 h-3"></span>
-              )}
+              
             </div>
           </div>
         </div>
