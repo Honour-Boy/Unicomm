@@ -222,20 +222,20 @@ const ChatList = () => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto h-[40rem] items-start flex flex-col w-full p-2 chatlist">
-      <ToastContainer position="top-center" />
-      <div className="flex items-center gap-2 w-full my-2">
-        <div className="flex items-center gap-2 flex-1 bg-[#373737] rounded-lg w-60 p-1 border">
+    <div className="flex-1 overflow-y-auto items-start flex flex-col w-full px-3 py-3 gap-1 uni-scroll">
+      <ToastContainer position="top-center" theme="dark" />
+      <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center gap-2 flex-1 bg-uni-surface border border-uni-border rounded-full px-3 py-2 focus-within:border-indigo-500/60 transition-colors">
           <img
             src={searchIcon}
             alt="search"
-            className="w-5 h-5 cursor-pointer"
+            className="w-4 h-4 cursor-pointer opacity-70"
             onClick={handleSearch}
           />
           <input
             type="text"
-            placeholder="Search"
-            className="bg-transparent border-none outline-none text-white w-full flex-1 p-1"
+            placeholder="Search conversations"
+            className="bg-transparent border-none outline-none text-sm text-white placeholder:text-uni-muted w-full flex-1"
             onChange={(e) => {
               setInput(e.target.value);
             }}
@@ -252,77 +252,81 @@ const ChatList = () => {
         <div className="mt-3 text-left">{error}</div>
       )}
       {user && (
-        <div className="mt-3 flex items-center gap-3 bg-[#2d2d2d] p-3 rounded-lg shadow-md">
-          <span className="text-white">{user.username}</span>
+        <div className="mt-3 flex items-center justify-between gap-3 bg-uni-surface border border-uni-border p-3 rounded-xl w-full">
+          <span className="text-white text-sm">{user.username}</span>
           <img
             src={plusIcon}
             alt="add user"
-            className="w-6 h-6 cursor-pointer"
+            className="w-5 h-5 cursor-pointer opacity-80 hover:opacity-100"
             onClick={() => handleAdd(user)}
           />
         </div>
       )}
-      <div className="mt-5 w-full flex flex-col">
-        <h3 className="text-lg font-semibold text-white text-left">
+      <div className="mt-4 w-full flex flex-col">
+        <h3 className="text-xs font-semibold text-uni-muted text-left uppercase tracking-wider px-1">
           Suggestions
         </h3>
-        <div className="w-full mt-3 overflow-x-auto scrollbar-hide px-1">
-          <div className="w-max flex flex-row gap-5">
+        <div className="w-full mt-2 overflow-x-auto scrollbar-hide">
+          <div className="w-max flex flex-row gap-2 pb-1">
             {suggestions.map((suggestion) => (
-              <div
+              <button
                 key={suggestion.id}
-                className="flex items-end gap-3 bg-[#2d2d2d] p-3 rounded-lg shadow-md"
+                onClick={() => handleAdd(suggestion)}
+                className="flex items-center gap-2 bg-uni-surface border border-uni-border hover:border-indigo-500/60 px-3 py-2 rounded-full transition-colors"
               >
-                <span className="text-white">{suggestion.username}</span>
+                <span className="text-white text-xs">{suggestion.username}</span>
                 <img
                   src={plusIcon}
                   alt="add user"
-                  className="w-5 h-5 cursor-pointer"
-                  onClick={() => handleAdd(suggestion)}
+                  className="w-4 h-4 cursor-pointer opacity-80"
                 />
-              </div>
+              </button>
             ))}
           </div>
         </div>
       </div>
-      <span className="mt-2 font-semibold text-white">Chats</span>
+      <h3 className="mt-4 text-xs font-semibold text-uni-muted uppercase tracking-wider px-1 self-start">
+        Chats
+      </h3>
       {chats.length === 0 && (
-        <p className="text-[#7e7e7e] text-md text-center w-full p-4">
+        <p className="text-uni-muted text-sm text-center w-full py-6">
           You have no chats yet
         </p>
       )}
-      {filteredChats.map((chat) => (
-        <div
-          key={chat.chatId}
-          className={`flex w-full items-center gap-4 p-3 cursor-pointer border-y border-[#373737]`}
-          onClick={() => handleSelect(chat.chatId, chat.user)}
-        >
-          <div className="user-avatar-small">
-            <span className="text-lg font-bold">
-              {chat.user.fullName?.split(" ")[0].charAt(0) +
-                chat.user.fullName?.split(" ")[0].charAt(1).toUpperCase()}
-            </span>
-          </div>
-          <div className="flex flex-col gap-2 flex-1">
-            <div className="flex justify-between items-center">
-              <span className="font-medium text-left text-white">
-                {chat.user.username}
-              </span>
-              <span className="text-[10px] text-white">
-                {format(chat.lastUpdated?.toDate())}
-              </span>
+      <div className="w-full flex flex-col gap-0.5 mt-1">
+        {filteredChats.map((chat) => (
+          <div
+            key={chat.chatId}
+            className="flex w-full items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-uni-surface transition-colors"
+            onClick={() => handleSelect(chat.chatId, chat.user)}
+          >
+            <div className="user-avatar-small text-sm">
+              {(chat.user.fullName?.split(" ")[0]?.charAt(0) || "") +
+                (chat.user.fullName?.split(" ")[0]?.charAt(1)?.toUpperCase() ||
+                  "")}
             </div>
-            <div className="flex justify-between items-center">
-              <p className="text-sm text-left font-light text-white">
-                {chat.user.blocked.includes(currentUser.id)
+            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+              <div className="flex justify-between items-center gap-2">
+                <span className="font-medium text-left text-white text-sm truncate">
+                  {chat.user.username}
+                </span>
+                <span className="text-[10px] text-uni-muted shrink-0">
+                  {chat.lastUpdated?.toDate
+                    ? format(chat.lastUpdated.toDate())
+                    : ""}
+                </span>
+              </div>
+              <p className="text-xs text-left text-uni-muted truncate">
+                {chat.user.blocked?.includes(currentUser.id)
                   ? "Blocked"
-                  : chat.id === currentUser?.id ? truncateMessage(chat.lastMessage) : truncateMessage(chat.lastTranslatedMessage)}
+                  : chat.id === currentUser?.id
+                  ? truncateMessage(chat.lastMessage || "")
+                  : truncateMessage(chat.lastTranslatedMessage || "")}
               </p>
-              
             </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };

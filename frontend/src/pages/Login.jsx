@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { showPass, hidePass, googleLogo } from "../assets";
 import { auth, googleProvider, db } from "../components/Firebase/firebase";
 import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
@@ -7,15 +7,24 @@ import { toast, ToastContainer } from "react-toastify";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import useUserStore from "../components/Firebase/userStore";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { currentUser } = useUserStore();
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [passwordShow, setPasswordShow] = useState({
+    type: "password",
+    img: hidePass,
+  });
+  const navigate = useNavigate();
 
+  const togglePassword = () =>
+    setPasswordShow((p) => ({
+      ...p,
+      type: p.type === "password" ? "text" : "password",
+      img: p.img === hidePass ? showPass : hidePass,
+    }));
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -32,9 +41,7 @@ function Login() {
       );
       const user = userCredential.user;
       const token = await user.getIdToken();
-      console.log(`Email sign-in successful: ${user.uid}`);
 
-      // Passing the token to the backend with Axios
       const response = await axios.post(
         "http://localhost:8001/api/signin",
         {},
@@ -47,50 +54,43 @@ function Login() {
       );
 
       if (response.status === 200) {
-        const data = response.data;
-        localStorage.setItem("authToken", data.token);
-        toast.success("Login successful! Redirecting...");
+        localStorage.setItem("authToken", response.data.token);
+        toast.success("Signed in. Redirecting…");
         setTimeout(() => {
           navigate("/chat");
           window.location.reload();
-        }, 3000);
+        }, 1500);
       } else {
-        toast.error("Email sign-in failed");
+        toast.error("Sign-in failed.");
       }
     } catch (error) {
-      console.error("Error with email sign-in:", error.message, error.stack);
+      console.error(error);
       toast.error("Invalid email or password.");
-    } finally{
+    } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
       const token = await user.getIdToken();
-      console.log("Google sign-in successful:", user);
 
-      // Check if the user already exists in the database
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
 
       if (!userDocSnap.exists()) {
-        // If the user does not exist, create a new document
         await setDoc(userDocRef, {
           fullName: user.displayName,
           email: user.email,
           id: user.uid,
           blocked: [],
         });
-
-        await setDoc(doc(db, "userchats", user.uid), {
-          chats: [],
-        });
+        await setDoc(doc(db, "userchats", user.uid), { chats: [] });
       }
 
-      // Passing the token to the backend with Axios
       const response = await axios.post(
         "http://localhost:8001/api/signin",
         {},
@@ -103,146 +103,196 @@ function Login() {
       );
 
       if (response.status === 200) {
-        const data = response.data;
-        localStorage.setItem("authToken", data.token);
-        toast.success("Google sign-in successful");
+        localStorage.setItem("authToken", response.data.token);
+        toast.success("Signed in with Google");
 
-        // Check if the user has a username
         const userData = (await getDoc(userDocRef)).data();
-        if (!userData.username) {
-          console.log("Navigating to create-profile");
-          setTimeout(() => {
+        setTimeout(() => {
+          if (!userData.username) {
             navigate("/create-profile");
-          }, 2500);
-        } else {
-          console.log("Navigating to chat");
-          setTimeout(() => {
+          } else {
             navigate("/chat");
             window.location.reload();
-          }, 2500);
-        }
+          }
+        }, 1500);
       } else {
-        toast.error("Google sign-in failed");
+        toast.error("Google sign-in failed.");
       }
     } catch (error) {
-      console.error("Error with Google sign-in:", error.message, error.stack);
+      console.error(error);
       toast.error("Google sign-in failed. Please try again.");
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
-  const [passwordshow, setpasswordshow] = useState({
-    type: "password",
-    img: hidePass,
-  });
-
-  function handlePassword() {
-    setpasswordshow((prevpass) => ({
-      ...prevpass,
-      type: prevpass.type === "password" ? "text" : "password",
-      img: prevpass.img === hidePass ? showPass : hidePass,
-    }));
-  }
-
   return (
-    <div className="flex flex-col items-center justify-center h-screen max-h-screen bg-login-pic bg-cover text-white max-w-screen">
-      <ToastContainer position="top-center" />
-      <form
-        onSubmit={handleLogin}
-        className="w-full max-w-md bg-[#1a1a1a] p-8 rounded-lg shadow-md"
-      >
-        <h2 className="text-4xl font-bold mb-2 text-center">Log in</h2>
-        <label className="text-sm text-center">
-          Fill in details to proceed
-        </label>
-        <div className="my-4">
-          <label
-            htmlFor="email"
-            className="block text-sm text-left font-bold mb-2"
-          >
-            Email
-          </label>
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to continue your conversations."
+    >
+      <form onSubmit={handleLogin} className="space-y-4">
+        <Field label="Email" htmlFor="email">
           <input
             type="email"
             id="email"
             value={email}
-            placeholder="example@example.com"
+            placeholder="you@company.com"
             onChange={(e) => setEmail(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 bg-[#212121] leading-tight focus:outline-none focus:shadow-outline"
+            className="auth-input"
             required
           />
-        </div>
-        <div className="mb-6 relative">
-          <label
-            htmlFor="password"
-            className="block text-sm text-left font-bold mb-2"
-          >
-            Password
-          </label>
-          <input
-            type={passwordshow.type}
-            id="password"
-            value={password}
-            placeholder="**************"
-            onChange={(e) => setPassword(e.target.value)}
-            className="shadow appearance-none border rounded w-full py-2 px-3 bg-[#212121] mb-3 leading-tight focus:outline-none focus:shadow-outline"
-            required
-          />
-          <img
-            src={passwordshow.img}
-            className="w-5 absolute top-9 right-2 cursor-pointer"
-            id="icon1"
-            onClick={handlePassword}
-          />
-        </div>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
+        </Field>
+
+        <Field label="Password" htmlFor="password">
+          <div className="relative">
+            <input
+              type={passwordShow.type}
+              id="password"
+              value={password}
+              placeholder="••••••••"
+              onChange={(e) => setPassword(e.target.value)}
+              className="auth-input pr-11"
+              required
+            />
+            <button
+              type="button"
+              onClick={togglePassword}
+              className="absolute inset-y-0 right-3 flex items-center text-uni-muted hover:text-white"
+              aria-label="Toggle password visibility"
+            >
+              <img src={passwordShow.img} className="w-4" alt="" />
+            </button>
+          </div>
+        </Field>
+
+        <div className="flex items-center justify-between text-sm">
+          <label className="flex items-center gap-2 text-uni-muted cursor-pointer select-none">
             <input
               type="checkbox"
-              id="remember"
-              className="mr-2 leading-tight"
+              className="accent-indigo-500 w-4 h-4 rounded"
             />
-            <label htmlFor="remember" className="text-sm">
-              Remember me
-            </label>
-          </div>
-          <a
-            href="/forgot-password"
-            className="text-sm text-orange-500 hover:text-orange-700"
+            Remember me
+          </label>
+          <Link
+            to="/forgot-password"
+            className="text-indigo-400 hover:text-indigo-300 font-medium"
           >
             Forgot password?
-          </a>
+          </Link>
         </div>
+
         <button
           type="submit"
-          className={`bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full ${loading && "cursor-none"}`}
           disabled={loading}
+          className="auth-primary-btn"
         >
-          {loading ? "Please wait..." : "Sign In"}
+          {loading ? <Spinner /> : "Sign in"}
         </button>
-        <div className="flex items-center justify-center my-6">
-          <span className="border-t border-[#373737] w-full"></span>
-          <span className="px-4 text-[#828282]">or</span>
-          <span className="border-t border-[#373737] w-full"></span>
+
+        <div className="flex items-center gap-3 my-2 text-xs text-uni-muted">
+          <span className="h-px flex-1 bg-uni-border" />
+          OR
+          <span className="h-px flex-1 bg-uni-border" />
         </div>
-        <div className="flex justify-center space-x-4">
-          <button
-            type="button"
-            onClick={handleGoogleSignIn}
-            className="bg-[#373737] hover:bg-[#474747] text-white font-bold w-full py-2 px-4 rounded flex items-center justify-center"
+
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading}
+          className="auth-secondary-btn"
+        >
+          {googleLoading ? (
+            <Spinner />
+          ) : (
+            <>
+              <img src={googleLogo} alt="" className="w-4 h-4" />
+              Continue with Google
+            </>
+          )}
+        </button>
+
+        <p className="text-center text-sm text-uni-muted pt-2">
+          New to Unicomm?{" "}
+          <Link
+            to="/register"
+            className="text-indigo-400 hover:text-indigo-300 font-medium"
           >
-            <img src={googleLogo} alt="google logo" className=" w-5 mr-2"/>Sign in with Google
-          </button>
-        </div>
-        <p className="text-center text-sm mt-6">
-          New user?{" "}
-          <a href="/register" className="text-orange-500 hover:text-orange-700">
-            Sign up
-          </a>
+            Create an account
+          </Link>
         </p>
       </form>
-    </div>
+      <ToastContainer position="top-center" theme="dark" />
+    </AuthLayout>
   );
 }
 
-export default Login;
+/* --- shared auth shell --- */
+export const AuthLayout = ({ title, subtitle, children, wide = false }) => (
+  <div className="min-h-screen w-screen bg-uni-bg text-uni-text font-sans flex items-center justify-center px-4 py-10 relative overflow-hidden">
+    <div className="pointer-events-none absolute inset-0 -z-10">
+      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-3xl" />
+      <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] rounded-full bg-violet-600/20 blur-3xl" />
+    </div>
 
+    <div
+      className={`w-full ${
+        wide ? "max-w-lg" : "max-w-md"
+      } bg-uni-surface/80 backdrop-blur-xl border border-uni-border rounded-2xl shadow-2xl p-7 sm:p-8 animate-fade-in-up`}
+    >
+      <Link to="/" className="flex items-center gap-2 mb-6">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
+          <span className="text-white font-bold text-sm">U</span>
+        </div>
+        <span className="font-bold tracking-tight">Unicomm</span>
+      </Link>
+
+      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
+      {subtitle && (
+        <p className="text-sm text-uni-muted mt-1.5 mb-6">{subtitle}</p>
+      )}
+      {!subtitle && <div className="mb-6" />}
+
+      {children}
+    </div>
+  </div>
+);
+
+export const Field = ({ label, htmlFor, children }) => (
+  <div>
+    <label
+      htmlFor={htmlFor}
+      className="block text-xs font-semibold text-uni-muted mb-1.5 uppercase tracking-wider"
+    >
+      {label}
+    </label>
+    {children}
+  </div>
+);
+
+export const Spinner = () => (
+  <svg
+    className="animate-spin"
+    width="18"
+    height="18"
+    viewBox="0 0 24 24"
+    fill="none"
+  >
+    <circle
+      cx="12"
+      cy="12"
+      r="9"
+      stroke="currentColor"
+      strokeWidth="3"
+      opacity="0.25"
+    />
+    <path
+      d="M21 12a9 9 0 0 1-9 9"
+      stroke="currentColor"
+      strokeWidth="3"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+
+export default Login;

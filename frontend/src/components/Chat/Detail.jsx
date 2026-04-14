@@ -1,21 +1,38 @@
-import { arrayRemove, arrayUnion, doc, updateDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
+import {
+  arrayRemove,
+  arrayUnion,
+  doc,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import useChatStore from "../Firebase/chatStore";
 import { db } from "../Firebase/firebase";
 import useUserStore from "../Firebase/userStore";
 import languages from "../Common/Languages";
+import { isUserOnline } from "../Firebase/usePresence";
+import { format } from "timeago.js";
 
-const Detail = () => {
-  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, changeBlock } =
+const Detail = ({ onClose }) => {
+  const { user, isCurrentUserBlocked, isReceiverBlocked, changeBlock } =
     useChatStore();
   const { currentUser } = useUserStore();
+  const [liveUser, setLiveUser] = useState(user);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    const unsub = onSnapshot(doc(db, "users", user.id), (snap) => {
+      if (snap.exists()) setLiveUser({ ...snap.data(), id: user.id });
+    });
+    return () => unsub();
+  }, [user?.id]);
+
+  const online = isUserOnline(liveUser);
 
   const handleBlock = async () => {
     if (!user) return;
-
-    const userDocRef = doc(db, "users", currentUser.id);
-
     try {
-      await updateDoc(userDocRef, {
+      await updateDoc(doc(db, "users", currentUser.id), {
         blocked: isReceiverBlocked ? arrayRemove(user.id) : arrayUnion(user.id),
       });
       changeBlock();
@@ -24,69 +41,115 @@ const Detail = () => {
     }
   };
 
-  const truncateMessage = (message, wordLimit = 4) => {
-    const words = message.split(" ");
-    if (words.length > wordLimit) {
-      return words.slice(0, wordLimit).join(" ") + " ...";
-    }
-    return message;
-  };
+  const initials =
+    (user?.fullName?.charAt(0) || "") +
+    (user?.fullName?.charAt(1)?.toUpperCase() || "");
+
+  const langLabel =
+    languages.find((l) => l.value === user?.language)?.label || "—";
+
+  const lastSeenText = (() => {
+    const ls = liveUser?.lastSeen;
+    if (!ls) return "Offline";
+    const ts =
+      typeof ls?.toMillis === "function"
+        ? ls.toMillis()
+        : ls?.seconds
+        ? ls.seconds * 1000
+        : null;
+    return ts ? `Last seen ${format(new Date(ts))}` : "Offline";
+  })();
 
   return (
-    <div className="text-white w-1/5 space-y-4 h-screen rounded-lg">
-      <div className="h-1/5 flex flex-col gap-2 items-center space-x-4 p-4 border-b border-[#373737]">
-      {/* <h2 className="font-bold text-xl mb-5">User Details</h2> */}
-        <div className="user-avatar bg-[#8989899b] text-[white]">
-          <span className="text-2xl font-bold">
-            {user?.fullName.charAt(0) + user?.fullName.charAt(1).toUpperCase()}
+    <div className="flex flex-col h-full text-white">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-uni-border">
+        <h3 className="text-sm font-semibold text-uni-muted uppercase tracking-wider">
+          Profile
+        </h3>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-lg text-uni-muted hover:text-white hover:bg-uni-surface transition-colors"
+          aria-label="Close"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Profile */}
+      <div className="flex flex-col items-center text-center px-6 py-6 border-b border-uni-border">
+        <div className="user-avatar !w-20 !h-20 text-2xl">{initials}</div>
+        <h2 className="mt-3 text-lg font-semibold">{user?.fullName}</h2>
+        <p className="text-sm text-uni-muted">{user?.username}</p>
+        <div className="mt-3 flex items-center gap-1.5 text-xs">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              online ? "bg-uni-online animate-pulse-dot" : "bg-uni-muted/50"
+            }`}
+          />
+          <span className={online ? "text-uni-online" : "text-uni-muted"}>
+            {online ? "Online" : lastSeenText}
           </span>
         </div>
-        <div>
-          <h2 className="text-xl font-bold">{user?.username}</h2>
-          <p className="text-[#9e9e9e] text-sm">{user?.email}</p>
-        </div>
       </div>
-      <div className="space-y-4 p-4 flex flex-col justify-around h-3/4">
-        <div className="flex items-start gap-2">
-          <h2 className="text-md font-semibold text-left">Bio:</h2>
-          <p className="text-[#9e9e9e] text-left">
-            {truncateMessage(user?.bio, 12)}
+
+      {/* Info */}
+      <div className="flex-1 overflow-y-auto uni-scroll px-6 py-5 space-y-4">
+        <InfoRow label="Email" value={user?.email} />
+        <InfoRow label="Language" value={langLabel} />
+        <InfoRow label="Job Title" value={user?.jobTitle || "—"} />
+        <InfoRow label="Organization" value={user?.organization || "—"} />
+        <div>
+          <p className="text-xs font-semibold text-uni-muted uppercase tracking-wider mb-1">
+            Bio
+          </p>
+          <p className="text-sm text-uni-text leading-relaxed">
+            {user?.bio || "No bio yet."}
           </p>
         </div>
-        <div className="flex items-start gap-2">
-          <h2 className="text-md font-semibold text-left">Language:</h2>
-          {languages
-            .filter((lang) => lang.value === user?.language)
-            .map((lang) => (
-              <p key={lang.value} className="text-[#9e9e9e]">
-                {lang.label}
-              </p>
-            ))}
-        </div>
-        <div className="flex items-start gap-2">
-          <h2 className="text-md font-semibold text-left">Job Title: </h2>
-          <p className="text-[#9e9e9e] text-left">{user?.jobTitle}</p>
-        </div>
-        <div className="flex items-start gap-2">
-          <h2 className="text-md font-semibold text-left">Organization: </h2>
-          <p className="text-[#9e9e9e] text-left">{user?.organization}</p>
-        </div>
-        <div className="flex flex-col gap-4 mb-3">
-          <button
-            onClick={handleBlock}
-            className="bg-[#555555] hover:bg-[#898989] text-white font-bold py-2 px-4 rounded-lg w-full"
-            disabled={isCurrentUserBlocked}
-          >
-            {isCurrentUserBlocked
-              ? "You are Blocked!"
-              : isReceiverBlocked
-              ? "Unblock User"
-              : "Block User"}
-          </button>
-        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="p-4 border-t border-uni-border">
+        <button
+          onClick={handleBlock}
+          disabled={isCurrentUserBlocked}
+          className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+            isReceiverBlocked
+              ? "bg-uni-surface border border-uni-border text-white hover:bg-uni-surface2"
+              : "bg-red-500/10 border border-red-500/30 text-red-300 hover:bg-red-500/20"
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          {isCurrentUserBlocked
+            ? "You are blocked"
+            : isReceiverBlocked
+            ? "Unblock user"
+            : "Block user"}
+        </button>
       </div>
     </div>
   );
 };
+
+const InfoRow = ({ label, value }) => (
+  <div>
+    <p className="text-xs font-semibold text-uni-muted uppercase tracking-wider mb-1">
+      {label}
+    </p>
+    <p className="text-sm text-uni-text break-words">{value}</p>
+  </div>
+);
 
 export default Detail;

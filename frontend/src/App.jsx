@@ -12,11 +12,13 @@ import { useEffect } from "react";
 import { auth } from "./components/Firebase/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import useUserStore from "./components/Firebase/userStore";
+import usePresence from "./components/Firebase/usePresence";
 import "./styles/App.css";
 import LoadingSpinner from "./components/Common/LoadingComponent";
 
 function App() {
-  const { isLoading, fetchUserInfo } = useUserStore();
+  const { isLoading, fetchUserInfo, currentUser } = useUserStore();
+  usePresence(currentUser?.id);
   useEffect(() => {
     const unSub = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -31,7 +33,7 @@ function App() {
 
   return (
     <Router>
-      <div className="max-h-screen max-w-screen">
+      <div className="max-h-screen max-w-screen bg-uni-bg font-sans">
         <Routes>
           <Route
             path="/"
@@ -78,9 +80,9 @@ function App() {
             element={
               <PrivateRouter>
                 {isLoading ? (
-                  <div className="flex items-center justify-center bg-[#1a1a1a] w-screen h-screen text-white flex-col gap-2">
+                  <div className="flex items-center justify-center bg-uni-bg w-screen h-screen text-uni-text flex-col gap-3">
                     <LoadingSpinner />
-                    Loading...
+                    <span className="text-sm text-uni-muted">Loading…</span>
                   </div>
                 ) : (
                   <ChatRoom />

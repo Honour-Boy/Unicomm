@@ -1,9 +1,9 @@
-import { ClipLoader } from 'react-spinners';
+import { ClipLoader } from "react-spinners";
 
-const LoadingSpinner = () => {
+const LoadingSpinner = ({ size = 36 }) => {
   return (
     <div className="flex justify-center items-center">
-      <ClipLoader color="orange" size={50} />
+      <ClipLoader color="#6366F1" size={size} />
     </div>
   );
 };

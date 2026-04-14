@@ -1,56 +1,103 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { sendPasswordResetEmail } from 'firebase/auth';
-import { auth } from '../components/Firebase/firebase';
-import { ToastContainer, toast } from 'react-toastify';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { sendPasswordResetEmail } from "firebase/auth";
+import { auth } from "../components/Firebase/firebase";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthLayout, Field, Spinner } from "./Login";
 
 const ForgotPassword = () => {
-    const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
-        e.preventDefault(); 
-        try {
-            await sendPasswordResetEmail(auth, email);
-            toast.success('Password reset email sent successfully.');
-            setTimeout(() => {
-                navigate("/login");
-                window.location.reload();
-              }, 3000);
-        } catch (error) {
-            toast.error('Failed to send password reset email. Please try again.');
-        }
-    };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email) {
+      toast.error("Please enter your email.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setSent(true);
+      toast.success("Reset link sent — check your inbox.");
+      setTimeout(() => navigate("/login"), 3500);
+    } catch (error) {
+      console.error(error);
+      toast.error("Could not send reset email. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <div className="min-h-screen bg-[#1a1a1a] flex flex-col justify-center">
-        <ToastContainer />
-            <div className="max-w-md w-full mx-auto bg-[#353535] p-8 rounded-lg border border-[#848484]">
-                <h1 className="text-4xl font-bold text-white text-center mb-5">Forgot Password?</h1>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label htmlFor="email" className="text-sm font-medium text-gray-200 text-left block">Email:</label>
-                        <input
-                            type="email"
-                            id="email"
-                            className="w-full p-2 mt-2 border border-[#4b4b4b] bg-[#212121] text-white"
-                            placeholder='Enter Email.'
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                    </div>
-                    <div>
-                        <button type="submit" className="w-full py-2 px-4 bg-orange-600 hover:bg-orange-800 rounded-md text-white">Reset Password</button>
-                    </div>
-                </form>
-                <div className="mt-6 text-white text-center">
-                    <p>
-                        Remember your password? <Link to="/login" className="text-orange-500 hover:underline">Login</Link>
-                    </p>
-                </div>
-            </div>
+  return (
+    <AuthLayout
+      title="Forgot your password?"
+      subtitle="Enter the email tied to your account and we'll send you a reset link."
+    >
+      {sent ? (
+        <div className="flex flex-col items-center text-center py-2">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-indigo-300 mb-4">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+              <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+          </div>
+          <h2 className="text-lg font-semibold text-white">Check your inbox</h2>
+          <p className="text-sm text-uni-muted mt-1">
+            We've sent a password reset link to <br />
+            <span className="text-white">{email}</span>
+          </p>
+          <Link
+            to="/login"
+            className="mt-5 auth-secondary-btn inline-flex justify-center"
+          >
+            Back to sign in
+          </Link>
         </div>
-    );
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Field label="Email" htmlFor="email">
+            <input
+              type="email"
+              id="email"
+              value={email}
+              placeholder="you@company.com"
+              onChange={(e) => setEmail(e.target.value)}
+              className="auth-input"
+              required
+            />
+          </Field>
+
+          <button type="submit" disabled={loading} className="auth-primary-btn">
+            {loading ? <Spinner /> : "Send reset link"}
+          </button>
+
+          <p className="text-center text-sm text-uni-muted pt-1">
+            Remembered it?{" "}
+            <Link
+              to="/login"
+              className="text-indigo-400 hover:text-indigo-300 font-medium"
+            >
+              Back to sign in
+            </Link>
+          </p>
+        </form>
+      )}
+      <ToastContainer position="top-center" theme="dark" />
+    </AuthLayout>
+  );
 };
 
 export default ForgotPassword;
