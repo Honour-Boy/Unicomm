@@ -6,7 +6,6 @@ import { where, query } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
 import languages from "@/components/common/Languages";
 import "react-toastify/dist/ReactToastify.css";
-import useUserStore from "@/store/userStore";
 
 const Profile = () => {
   const [section, setSection] = useState(0);
@@ -19,7 +18,6 @@ const Profile = () => {
   const [jobTitle, setJobTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { currentUser } = useUserStore();
 
   const handleNext = () => {
     setSection((prev) => prev + 1);
@@ -50,6 +48,7 @@ const Profile = () => {
 
     if (!querySnapshot.empty) {
       toast.warn("Select another username");
+      setLoading(false);
       return;
     }
 
@@ -68,14 +67,9 @@ const Profile = () => {
 
       toast.success("Profile created successfully!");
       setTimeout(() => {
-        // Check if the user is already logged in
-        const token = localStorage.getItem("authToken");
-        console.log("Token:", token);
-        if (token || currentUser) {
-          navigate("/chat");
-        } else {
-          navigate("/login");
-        }
+        // The user just authenticated to create the profile, so go straight to
+        // chat; fall back to login only if the session somehow dropped.
+        navigate(auth.currentUser ? "/chat" : "/login");
       }, 3000);
     } catch (error) {
       console.error("Profile creation error:", error.message);

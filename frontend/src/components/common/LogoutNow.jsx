@@ -11,9 +11,9 @@ const LogoutNow = () => {
   const navigate = useNavigate();
 
   const logoutFunc = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("uid");
     resetChat();
+    // Signing out flips `allowUser` via onAuthStateChanged; setAllowUser keeps
+    // the UI immediate.
     auth.signOut();
     setAllowUser(false);
     navigate("/");

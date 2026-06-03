@@ -2,7 +2,7 @@ import {
   addDoc,
   collection,
   doc,
-  getDoc,
+  runTransaction,
   updateDoc,
 } from "firebase/firestore";
 import axios from "axios";
@@ -63,18 +63,28 @@ export async function sendChatMessage({
   }
 
   // 3) Update both users' userchats preview (best-effort, with the final text).
+  //    Wrapped in a transaction so the array read-modify-write can't lose a
+  //    concurrent send's update (Firestore can't patch a single array element).
   const userIDs = [currentUser.id, receiver.id];
   for (const id of userIDs) {
     const userChatsRef = doc(db, "userchats", id);
-    const snap = await getDoc(userChatsRef);
-    if (!snap.exists()) continue;
-    const data = snap.data();
-    const idx = data.chats.findIndex((c) => c.chatId === chatId);
-    if (idx !== -1) {
-      data.chats[idx].lastMessage = text;
-      data.chats[idx].lastTranslatedMessage = translatedText;
-      data.chats[idx].updatedAt = Date.now();
-      await updateDoc(userChatsRef, { chats: data.chats });
+    try {
+      await runTransaction(db, async (tx) => {
+        const snap = await tx.get(userChatsRef);
+        if (!snap.exists()) return;
+        const chats = snap.data().chats || [];
+        const idx = chats.findIndex((c) => c.chatId === chatId);
+        if (idx === -1) return;
+        chats[idx] = {
+          ...chats[idx],
+          lastMessage: text,
+          lastTranslatedMessage: translatedText,
+          updatedAt: Date.now(),
+        };
+        tx.update(userChatsRef, { chats });
+      });
+    } catch (err) {
+      console.warn("Failed to update userchats preview.", err?.message || err);
     }
   }
 }

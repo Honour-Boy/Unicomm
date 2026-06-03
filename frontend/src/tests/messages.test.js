@@ -3,7 +3,7 @@
 // failure must never drop the message.
 import { sendChatMessage } from "@/services/messages";
 import axios from "axios";
-import { addDoc, getDoc, updateDoc } from "firebase/firestore";
+import { addDoc, updateDoc } from "firebase/firestore";
 
 jest.mock("axios");
 jest.mock("@/lib/firebase", () => ({ db: {} }));
@@ -11,8 +11,11 @@ jest.mock("firebase/firestore", () => ({
   addDoc: jest.fn(),
   collection: jest.fn(() => "messagesCol"),
   doc: jest.fn(() => "userChatsRef"),
-  getDoc: jest.fn(),
   updateDoc: jest.fn(),
+  // No userchats doc in these tests → the transaction returns early.
+  runTransaction: jest.fn(async (_db, fn) =>
+    fn({ get: async () => ({ exists: () => false }), update: jest.fn() })
+  ),
 }));
 
 const baseArgs = {
@@ -28,8 +31,6 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.spyOn(console, "warn").mockImplementation(() => {});
   addDoc.mockResolvedValue({ id: "msg1" });
-  // No userchats docs for these tests — the preview-update loop is a no-op.
-  getDoc.mockResolvedValue({ exists: () => false });
   updateDoc.mockResolvedValue();
 });
 
