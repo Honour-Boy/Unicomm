@@ -1,77 +1,77 @@
 # UniComm
 
-UniComm is a sophisticated, dark-themed web application designed for real-time multilingual communication. It facilitates seamless interaction among users by offering functionalities like user registration, profile management, and instant messaging with automatic translation. Built using React JS and Tailwind CSS on the frontend, and Node.js, Express.js on the backend, with Firebase for database management, UniComm provides a modern, minimalist, and user-friendly interface for efficient communication.
+UniComm is a minimal, dark-themed, **multilingual** team chat: every user reads and works
+in their own language, and messages are **auto-translated per recipient**. It supports
+email/password + Google sign-in and real-time 1:1 messaging.
 
-## Overview
+> Live: frontend on **Vercel** (`https://unicomm-org.vercel.app`), backend on **Render**.
 
-UniComm's architecture is structured to support real-time, scalable, and secure communication. The frontend is developed with React JS for dynamic user interfaces and Tailwind CSS for a custom, responsive design. The backend leverages Node.js and Express.js to handle API requests, user authentication, and integrations. Firebase is used for data persistence, storing user profiles, and chat messages. Real-time messaging is powered by WebSocket, ensuring instant communication across users. The application also integrates an external translation API for on-the-fly translation of messages, making it ideal for multilingual teams.
+## How it works
 
-## Final Year Project
-
-This project was my final year project at university, where I initially finetuned a large language model (LLM) to use for real-time communication. However, due to some issues with my model, I have since switched to using an external translation method. Despite this change, UniComm remains a robust and effective solution for multilingual communication.
+- **Frontend:** React 18 + Vite + Tailwind (`/frontend`), routing via React Router, client
+  state via Zustand.
+- **Backend:** Node.js + Express (CommonJS, `/backend`) with `firebase-admin` — deliberately
+  thin (one route, `POST /api/signin`).
+- **Realtime:** Firebase **Firestore `onSnapshot`** subscriptions (no WebSocket / Socket.IO).
+- **Database & Auth:** Firebase Firestore (`users`, `userchats`, `chats`) + Firebase Auth.
+- **Translation:** per-message via a LibreTranslate instance, applied per recipient's language.
 
 ## Features
 
-- **User Registration and Authentication**: Secure signup/login processes to manage user access.
-- **Profile Management**: Users can update their personal information.
-- **Real-time Messaging**: Instant communication with one or multiple users.
-- **Automatic Translation**: Messages are automatically translated, supporting diverse languages and enhancing cross-cultural communication.
-- **Modern UI**: A dark-themed, minimalist design that is easy to navigate, providing a pleasant user experience.
+- Email/password and Google authentication.
+- One-time profile setup (username, preferred language, etc.).
+- Real-time 1:1 chat with automatic per-recipient translation, presence, and blocking.
 
-## Getting Started
+## Getting started
 
 ### Requirements
 
-- Node.js (latest stable version)
-- Git
-- Firebase CLI
+- Node.js 20+ and npm
+- A Firebase project (Firestore + Auth) and its Web config + an Admin service-account key
 
-### Quickstart
-
-1. **Clone the repository**
+### Setup
 
 ```bash
 git clone <repository-url>
-```
+cd Unicomm
 
-2. **Navigate to the project directory**
-
-```bash
-cd UniComm
-```
-
-3. **Install dependencies**
-
-```bash
+# install dependencies (root test harness + each package)
 npm install
+npm install --prefix frontend
+npm install --prefix backend
 ```
 
-4. **Set up Firebase**
+**Environment variables** (copy the examples; real values are gitignored):
 
-- Ensure you have a Firebase project created and configured.
-- Update the `src/firebase/unicomm-2d7bc-firebase-adminsdk-o81cb-6c982c2971.json` file with your Firebase project credentials.
+- `frontend/.env.local` — from `frontend/.env.example` (`VITE_API_KEY`, `VITE_API_URL`).
+- `backend/.env` — from `backend/.env.example`, **or** place the Firebase Admin
+  service-account JSON at `backend/config/unicomm.json` (gitignored) for local dev.
 
-5. **Environment Variables**
-
-- Create a `.env` file in the root directory.
-- Add the necessary environment variables as specified in the `.env.example` file.
-
-6. **Run the application**
-
-- Start the backend server:
+### Run (two terminals)
 
 ```bash
-npm run start:backend
+npm run dev --prefix frontend   # Vite dev server → http://localhost:5173
+npm run dev --prefix backend    # Express + nodemon → http://localhost:8001
 ```
 
-- In a new terminal, start the frontend application:
+### Test
 
 ```bash
-npm run dev
+npm test            # backend (node) + frontend (jsdom) Jest projects
 ```
 
-The application should now be running on `http://localhost:3000` (or your specified port).
+## Deployment
+
+Frontend deploys to Vercel and the backend to Render; Firestore rules/indexes live in
+`firebase/` and deploy via the Firebase CLI. See the deployment runbook for the full,
+step-by-step process and environment/secret reference.
+
+## Final year project
+
+This started as my final-year university project, where I initially fine-tuned an LLM for
+real-time translation. Due to issues with that model I switched to an external translation
+engine, but UniComm remains a working solution for multilingual communication.
 
 ## License
 
-This Project is licensed under the MIT license.
+Licensed under the MIT license.
