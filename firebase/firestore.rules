@@ -45,9 +45,10 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Chat documents (hold the messages array). Participant-scoped: only the
-    // users listed in participantIds may read or append. The participant list
-    // itself is fixed at creation and cannot be changed by an update.
+    // Chat documents (participant list + metadata; messages live in the
+    // `messages` subcollection below). Participant-scoped: only the users listed
+    // in participantIds may read or write. The participant list itself is fixed
+    // at creation and cannot be changed by an update.
     match /chats/{chatId} {
       allow read: if isSignedIn()
         && request.auth.uid in resource.data.participantIds;
@@ -58,11 +59,21 @@ service cloud.firestore {
         && request.resource.data.participantIds == resource.data.participantIds;
       allow delete: if false;
 
-      // Future-proofing for the planned messages subcollection (ROADMAP Phase 4).
-      // Scoped to the parent chat's participants.
+      // Messages subcollection. Scoped to the parent chat's participants.
+      // The sender writes the original text first (persist-first), then patches
+      // `translatedText` once best-effort translation resolves — so updates are
+      // allowed for the sender, but content/metadata is immutable: only
+      // `translatedText` can change (senderId, text, createdAt are pinned).
       match /messages/{messageId} {
-        allow read, create: if isChatParticipant(chatId);
-        allow update, delete: if false;
+        allow read: if isChatParticipant(chatId);
+        allow create: if isChatParticipant(chatId)
+          && request.resource.data.senderId == request.auth.uid;
+        allow update: if isChatParticipant(chatId)
+          && resource.data.senderId == request.auth.uid
+          && request.resource.data.senderId == resource.data.senderId
+          && request.resource.data.text == resource.data.text
+          && request.resource.data.createdAt == resource.data.createdAt;
+        allow delete: if false;
       }
     }
   }

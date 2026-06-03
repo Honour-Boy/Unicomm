@@ -13,6 +13,7 @@ import {
   arrayUnion,
   where,
   limit,
+  orderBy,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import useChatStore from "@/store/chatStore";
@@ -40,23 +41,34 @@ const ChatList = () => {
     const unSub = onSnapshot(
       doc(db, "userchats", currentUser.id),
       async (res) => {
-        const items = res.data() || [];
-        const promises = items.chats.map(async (item) => {
+        const items = res.data() || {};
+        const list = items.chats || [];
+        const promises = list.map(async (item) => {
           const userDocRef = doc(db, "users", item.receiverId);
           const userDocSnap = await getDoc(userDocRef);
           const user = userDocSnap.data();
 
-          const chatDocRef = doc(db, "chats", item.chatId);
-          const chatDocSnap = await getDoc(chatDocRef);
-          const messages = chatDocSnap.data()?.messages
-          const time = messages[messages.length - 1]?.createdAt || null;
-          const lastId = messages[messages.length - 1]?.senderId || null;
+          // Last message now lives in the chats/{id}/messages subcollection.
+          const lastSnap = await getDocs(
+            query(
+              collection(db, "chats", item.chatId, "messages"),
+              orderBy("createdAt", "desc"),
+              limit(1)
+            )
+          );
+          const last = lastSnap.docs[0]?.data();
+          const time = last?.createdAt || null;
+          const lastId = last?.senderId || null;
 
           return { ...item, user, lastUpdated: time, updatedAt: items.updatedAt, id: lastId };
         });
         const chatData = await Promise.all(promises);
 
-        setChats(chatData.sort((a, b) => b.updatedAt.seconds - a.updatedAt.seconds));
+        setChats(
+          chatData.sort(
+            (a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0)
+          )
+        );
       }
     );
 
@@ -172,11 +184,11 @@ const ChatList = () => {
       }
 
       // Create new chat document. participantIds drives the Firestore security
-      // rules (only these two users can read/append to this chat).
+      // rules (only these two users can read/write this chat). Messages live in
+      // the chats/{id}/messages subcollection, not on this doc.
       await setDoc(newChatRef, {
         createdAt: timestamp,
         participantIds: [currentUser.id, userToAdd.id],
-        messages: [],
       });
 
       // Update "userchats" collection for the other user

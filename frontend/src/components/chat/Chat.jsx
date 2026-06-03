@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
+import { collection, doc, onSnapshot, orderBy, query } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import useChatStore from "@/store/chatStore";
 import useUserStore from "@/store/userStore";
@@ -12,7 +12,7 @@ import Spinner from "@/components/ui/Spinner";
 import { SendIcon, EmojiIcon, Arrow, Dot } from "@/components/ui/icons";
 
 const Chat = ({ onHeaderClick, detailOpen }) => {
-  const [chat, setChat] = useState("");
+  const [messages, setMessages] = useState([]);
   const [liveUser, setLiveUser] = useState(null);
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -26,15 +26,24 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const endRef = useRef(null);
 
   useEffect(() => {
-    if (chat?.messages) {
+    if (messages.length) {
       endRef.current?.scrollIntoView({ behavior: "smooth" });
     }
-  }, [chat?.messages]);
+  }, [messages]);
 
+  // Messages live in the chats/{chatId}/messages subcollection, ordered by
+  // creation time. (Replaces the old single growing array on the chat doc.)
   useEffect(() => {
-    if (!chatId) return;
-    const unSub = onSnapshot(doc(db, "chats", chatId), (res) => {
-      setChat(res.data());
+    if (!chatId) {
+      setMessages([]);
+      return;
+    }
+    const q = query(
+      collection(db, "chats", chatId, "messages"),
+      orderBy("createdAt", "asc")
+    );
+    const unSub = onSnapshot(q, (snap) => {
+      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
     });
     return () => unSub();
   }, [chatId]);
@@ -66,6 +75,13 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const targetCode = userLang?.value?.toUpperCase() || "EN";
   const targetLabel = userLang?.label || "English";
   const sourceLabel = currentUserLang?.label || "English";
+
+  // Resolve a message's stored source language (the *sender's* language) to a
+  // human label so the "translated from …" label is correct regardless of who
+  // is viewing. Falls back to the viewer-derived label for legacy messages that
+  // predate the stored sourceLang field.
+  const labelForLang = (code) =>
+    languages.find((l) => l.value === code)?.label;
 
   const doSend = async (messageText) => {
     if (!messageText || !chatId) return;
@@ -168,7 +184,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto uni-scroll px-3 md:px-8 py-4 md:py-6 space-y-3">
-        {(!chat?.messages || chat.messages.length === 0) && (
+        {messages.length === 0 && (
           <div className="h-full min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 flex items-center justify-center mb-4 text-3xl">
               🌍
@@ -184,8 +200,8 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
           </div>
         )}
 
-        {chat?.messages?.map((message, idx) => {
-          const key = message?.createdAt?.seconds || idx;
+        {messages.map((message) => {
+          const key = message.id;
           return (
             <MessageBubble
               key={key}
@@ -193,7 +209,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
               isMine={message.senderId === currentUser?.id}
               showOriginal={!!expandedOriginals[key]}
               targetLabel={targetLabel}
-              sourceLabel={sourceLabel}
+              sourceLabel={labelForLang(message.sourceLang) || sourceLabel}
               onToggleOriginal={() => toggleOriginal(key)}
             />
           );
@@ -214,7 +230,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
         {sendError && !isSending && (
           <div className="flex justify-end animate-fade-in-up">
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
-              <span>Translation failed. Message not sent.</span>
+              <span>Couldn&apos;t send your message.</span>
               <button
                 onClick={handleRetry}
                 className="font-semibold text-white bg-red-500/80 hover:bg-red-500 px-2.5 py-1 rounded-md transition-colors"
