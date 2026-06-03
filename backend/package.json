@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "test": "jest --config ../jest.config.js --selectProjects backend",
     "start": "node server.js",
