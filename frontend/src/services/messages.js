@@ -7,8 +7,12 @@ import {
 } from "firebase/firestore";
 import axios from "axios";
 import { db } from "@/lib/firebase";
+import { TRANSLATE_URL } from "@/lib/env";
 
-const TRANSLATE_URL = "https://translate.flossboxin.org.in/translate";
+// A few of the app's language codes differ from the LibreTranslate instance's
+// (e.g. the app stores "zh", the instance serves "zh-Hans"). Map on the way out.
+const LT_CODE = { zh: "zh-Hans", zt: "zh-Hant" };
+const toLT = (code) => LT_CODE[code] || code;
 
 // Send a chat message.
 //
@@ -42,24 +46,28 @@ export async function sendChatMessage({
   });
 
   // 2) Best-effort translation. A failure here must not throw — the message is
-  //    already delivered; we just fall back to the original.
+  //    already delivered; we just fall back to the original. Skipped entirely
+  //    when both users share a language (saves a network round-trip + quota).
   let translatedText = text;
-  try {
-    const response = await axios.post(
-      TRANSLATE_URL,
-      { q: text, source: src, target: tgt },
-      { headers: { "Content-Type": "application/json" } }
-    );
-    if (response.status === 200 && response.data?.translatedText) {
-      translatedText = response.data.translatedText;
-      await updateDoc(messageRef, { translatedText });
+  if (src !== tgt) {
+    try {
+      const response = await axios.post(
+        TRANSLATE_URL,
+        { q: text, source: toLT(src), target: toLT(tgt) },
+        { headers: { "Content-Type": "application/json" } }
+      );
+      if (response.status === 200 && response.data?.translatedText) {
+        translatedText = response.data.translatedText;
+        await updateDoc(messageRef, { translatedText });
+      }
+    } catch (err) {
+      // Translation is best-effort; the original is already persisted. This also
+      // covers languages the instance hasn't loaded (it 400s → we keep original).
+      console.warn(
+        "Translation failed; delivered original text.",
+        err?.message || err
+      );
     }
-  } catch (err) {
-    // Translation is best-effort; the original is already persisted.
-    console.warn(
-      "Translation failed; delivered original text.",
-      err?.message || err
-    );
   }
 
   // 3) Update both users' userchats preview (best-effort, with the final text).

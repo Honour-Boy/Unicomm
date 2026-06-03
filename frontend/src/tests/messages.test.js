@@ -7,6 +7,8 @@ import { addDoc, updateDoc } from "firebase/firestore";
 
 jest.mock("axios");
 jest.mock("@/lib/firebase", () => ({ db: {} }));
+// @/lib/env uses Vite's import.meta.env, which Jest can't parse — mock it.
+jest.mock("@/lib/env", () => ({ TRANSLATE_URL: "https://translate.test/translate" }));
 jest.mock("firebase/firestore", () => ({
   addDoc: jest.fn(),
   collection: jest.fn(() => "messagesCol"),
