@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { collection, doc, onSnapshot, orderBy, query } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+} from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import useChatStore from "@/store/chatStore";
 import useUserStore from "@/store/userStore";
@@ -11,8 +18,13 @@ import MessageBubble from "@/components/chat/MessageBubble";
 import Spinner from "@/components/ui/Spinner";
 import { SendIcon, EmojiIcon, Arrow, Dot } from "@/components/ui/icons";
 
+// How many messages to load initially and per "load older" click.
+const PAGE_SIZE = 25;
+
 const Chat = ({ onHeaderClick, detailOpen }) => {
   const [messages, setMessages] = useState([]);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [hasMore, setHasMore] = useState(false);
   const [liveUser, setLiveUser] = useState(null);
   const [text, setText] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -24,15 +36,31 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const { chatId, user, isCurrentUserBlocked, isReceiverBlocked } =
     useChatStore();
   const endRef = useRef(null);
+  const lastMsgIdRef = useRef(null);
 
+  // Auto-scroll to the newest message — but only when a new message actually
+  // arrives (newest id changes), so loading older history doesn't yank the
+  // view to the bottom.
   useEffect(() => {
-    if (messages.length) {
+    if (!messages.length) return;
+    const newestId = messages[messages.length - 1].id;
+    if (lastMsgIdRef.current !== newestId) {
       endRef.current?.scrollIntoView({ behavior: "smooth" });
+      lastMsgIdRef.current = newestId;
     }
   }, [messages]);
 
-  // Messages live in the chats/{chatId}/messages subcollection, ordered by
-  // creation time. (Replaces the old single growing array on the chat doc.)
+  // Reset the page window when switching chats.
+  useEffect(() => {
+    setPageSize(PAGE_SIZE);
+    setHasMore(false);
+    lastMsgIdRef.current = null;
+  }, [chatId]);
+
+  // Messages live in the chats/{chatId}/messages subcollection. We subscribe to
+  // the most recent `pageSize` (orderBy desc + limit) and render them ascending,
+  // so a long history isn't re-downloaded in full on every snapshot. "Load
+  // older" grows the window. (Replaces the old single growing array.)
   useEffect(() => {
     if (!chatId) {
       setMessages([]);
@@ -40,13 +68,17 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
     }
     const q = query(
       collection(db, "chats", chatId, "messages"),
-      orderBy("createdAt", "asc")
+      orderBy("createdAt", "desc"),
+      limit(pageSize)
     );
     const unSub = onSnapshot(q, (snap) => {
-      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      setHasMore(snap.size === pageSize);
+      setMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() })).reverse());
     });
     return () => unSub();
-  }, [chatId]);
+  }, [chatId, pageSize]);
+
+  const loadOlder = () => setPageSize((n) => n + PAGE_SIZE);
 
   // Subscribe to recipient for dynamic presence
   useEffect(() => {
@@ -197,6 +229,17 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
               {user?.fullName?.split(" ")[0] || "your contact"} in {targetLabel}
               , instantly.
             </p>
+          </div>
+        )}
+
+        {hasMore && (
+          <div className="flex justify-center pb-1">
+            <button
+              onClick={loadOlder}
+              className="text-xs font-medium text-uni-muted hover:text-white bg-uni-surface border border-uni-border rounded-full px-4 py-1.5 transition-colors"
+            >
+              Load older messages
+            </button>
           </div>
         )}
 
