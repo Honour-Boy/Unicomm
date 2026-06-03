@@ -10,8 +10,10 @@ email/password + Google sign-in and real-time 1:1 messaging.
 
 - **Frontend:** React 18 + Vite + Tailwind (`/frontend`), routing via React Router, client
   state via Zustand.
-- **Backend:** Node.js + Express (CommonJS, `/backend`) with `firebase-admin` — deliberately
-  thin (one route, `POST /api/signin`).
+- **Backend:** Node.js + Express (CommonJS, `/backend`) — deliberately thin: a single
+  `GET /api/health` check. The Firebase client session authenticates Firestore directly, so
+  there's no auth endpoint. (`firebase-admin` is used only by the one-off scripts in
+  `backend/scripts/`.)
 - **Realtime:** Firebase **Firestore `onSnapshot`** subscriptions (no WebSocket / Socket.IO).
 - **Database & Auth:** Firebase Firestore (`users`, `userchats`, `chats`) + Firebase Auth.
 - **Translation:** per-message via a LibreTranslate instance, applied per recipient's language.

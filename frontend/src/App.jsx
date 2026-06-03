@@ -82,7 +82,7 @@ function App() {
                 {isLoading ? (
                   <div className="flex items-center justify-center bg-uni-bg w-screen h-screen text-uni-text flex-col gap-3">
                     <LoadingSpinner />
-                    <span className="text-sm text-uni-muted">Loadingâ€¦</span>
+                    <span className="text-sm text-uni-muted">Loading…</span>
                   </div>
                 ) : (
                   <ChatRoom />

@@ -75,7 +75,7 @@ const ChatList = () => {
     return () => {
       unSub();
     };
-  }, [currentUser.id]);
+  }, [currentUser?.id]);
 
   useEffect(() => {
     toast.info(toastify);
@@ -95,7 +95,7 @@ const ChatList = () => {
           }))
           .filter(
             (suggestion) =>
-              suggestion.id !== currentUser.id &&
+              suggestion.id !== currentUser?.id &&
               !chats.some((chat) => chat.user.id === suggestion.id) // Exclude users already in chat list
           );
 
@@ -105,8 +105,8 @@ const ChatList = () => {
       }
     };
 
-    fetchSuggestions();
-  }, [currentUser.id, chats]);
+    if (currentUser) fetchSuggestions();
+  }, [currentUser?.id, chats]);
 
   const handleSearch = async () => {
     let username = input.trim();
@@ -331,7 +331,7 @@ const ChatList = () => {
                 </span>
               </div>
               <p className="text-xs text-left text-uni-muted truncate">
-                {chat.user.blocked?.includes(currentUser.id)
+                {chat.user.blocked?.includes(currentUser?.id)
                   ? "Blocked"
                   : chat.id === currentUser?.id
                   ? truncateMessage(chat.lastMessage || "")
