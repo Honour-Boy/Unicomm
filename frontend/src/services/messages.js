@@ -1,16 +1,24 @@
-import { arrayUnion, doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  updateDoc,
+} from "firebase/firestore";
 import axios from "axios";
 import { db } from "@/lib/firebase";
 
 const TRANSLATE_URL = "https://translate.flossboxin.org.in/translate";
 
-// Translate the message, persist it to the chat doc, then update both users'
-// userchats lastMessage.
+// Send a chat message.
 //
-// NOTE (ROADMAP P0 #3): translation and persistence still share one flow, so a
-// translation failure throws before the message is saved. This is a faithful
-// extraction of the previous in-component logic — the data-loss fix (persist
-// original first, translate best-effort) is tracked separately.
+// Persist-first (ROADMAP P0 #3): the original text is written to the chat's
+// `messages` subcollection BEFORE any translation runs, so a translation
+// failure can never drop the message. Translation is a best-effort enhancement:
+// on success we patch `translatedText` onto the message; on failure we keep the
+// original (translatedText stays equal to text, so no misleading label shows).
+// `sourceLang` is stored per message so the recipient's "translated from …"
+// label reflects the *sender's* language, not the viewer's (ROADMAP P1).
 export async function sendChatMessage({
   chatId,
   currentUser,
@@ -19,39 +27,54 @@ export async function sendChatMessage({
   sourceLang,
   targetLang,
 }) {
-  let translatedText = text;
+  const src = sourceLang || "en";
+  const tgt = targetLang || "en";
 
-  const response = await axios.post(
-    TRANSLATE_URL,
-    { q: text, source: sourceLang || "en", target: targetLang || "en" },
-    { headers: { "Content-Type": "application/json" } }
-  );
-  if (response.status === 200) {
-    translatedText = response.data.translatedText;
+  // 1) Persist the original first — never blocked by translation. Until/unless
+  //    translation succeeds, translatedText mirrors the original text.
+  const messageRef = await addDoc(collection(db, "chats", chatId, "messages"), {
+    senderId: currentUser.id,
+    text,
+    translatedText: text,
+    sourceLang: src,
+    targetLang: tgt,
+    createdAt: new Date(),
+  });
+
+  // 2) Best-effort translation. A failure here must not throw — the message is
+  //    already delivered; we just fall back to the original.
+  let translatedText = text;
+  try {
+    const response = await axios.post(
+      TRANSLATE_URL,
+      { q: text, source: src, target: tgt },
+      { headers: { "Content-Type": "application/json" } }
+    );
+    if (response.status === 200 && response.data?.translatedText) {
+      translatedText = response.data.translatedText;
+      await updateDoc(messageRef, { translatedText });
+    }
+  } catch (err) {
+    // Translation is best-effort; the original is already persisted.
+    console.warn(
+      "Translation failed; delivered original text.",
+      err?.message || err
+    );
   }
 
-  await updateDoc(doc(db, "chats", chatId), {
-    messages: arrayUnion({
-      senderId: currentUser.id,
-      text,
-      translatedText,
-      createdAt: new Date(),
-    }),
-  });
-
+  // 3) Update both users' userchats preview (best-effort, with the final text).
   const userIDs = [currentUser.id, receiver.id];
-  userIDs.forEach(async (id) => {
+  for (const id of userIDs) {
     const userChatsRef = doc(db, "userchats", id);
     const snap = await getDoc(userChatsRef);
-    if (snap.exists()) {
-      const data = snap.data();
-      const idx = data.chats.findIndex((c) => c.chatId === chatId);
-      if (idx !== -1) {
-        data.chats[idx].lastMessage = text;
-        data.chats[idx].lastTranslatedMessage = translatedText;
-        data.chats[idx].updatedAt = Date.now();
-        await updateDoc(userChatsRef, { chats: data.chats });
-      }
+    if (!snap.exists()) continue;
+    const data = snap.data();
+    const idx = data.chats.findIndex((c) => c.chatId === chatId);
+    if (idx !== -1) {
+      data.chats[idx].lastMessage = text;
+      data.chats[idx].lastTranslatedMessage = translatedText;
+      data.chats[idx].updatedAt = Date.now();
+      await updateDoc(userChatsRef, { chats: data.chats });
     }
-  });
+  }
 }
