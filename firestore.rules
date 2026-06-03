@@ -1,0 +1,55 @@
+rules_version = '2';
+
+// UniComm Firestore security rules.
+//
+// Baseline (P0): everything requires authentication, and users can only write
+// their own profile. This replaces locked mode (which denies everything and
+// makes the app appear dead) and test mode (which is wide open and expires).
+//
+// KNOWN LIMITATION (tracked in ROADMAP.md): a message sender currently writes to
+// the *recipient's* `userchats` doc and to the shared `chats` doc, so those
+// writes can't yet be restricted to a single owner. Tightening this needs a
+// data-model change (store `participantIds` on each chat doc) or moving
+// cross-user writes to the backend / a Cloud Function. See the TODOs below.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // User profiles: readable by any signed-in user (needed for search,
+    // suggestions, and showing a chat partner's name/language). Writable only
+    // by the owner. No deletes from the client.
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && request.auth.uid == userId;
+      allow delete: if false;
+    }
+
+    // Per-user chat index. Owner can always read/write. Any signed-in user may
+    // update it because the sender updates the recipient's lastMessage on send.
+    // TODO(security): restrict updates once cross-user writes move to the backend.
+    match /userchats/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create, update: if isSignedIn();
+      allow delete: if false;
+    }
+
+    // Chat documents (hold the messages array). Any signed-in user may read and
+    // append for now.
+    // TODO(security): add participantIds to the chat doc and restrict to
+    // `request.auth.uid in resource.data.participantIds`.
+    match /chats/{chatId} {
+      allow read, create, update: if isSignedIn();
+      allow delete: if false;
+
+      // Future-proofing for the planned messages subcollection (ROADMAP Phase 4).
+      match /messages/{messageId} {
+        allow read, create: if isSignedIn();
+        allow update, delete: if false;
+      }
+    }
+  }
+}
