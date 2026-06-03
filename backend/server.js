@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const { userchatsSyncHandler } = require("./userchats");
 
 dotenv.config();
 
@@ -28,6 +29,12 @@ app.use(express.json());
 // custom-token round-trip was removed (the Firebase client session authenticates
 // Firestore directly — see ROADMAP P0 #2).
 app.get("/api/health", (req, res) => res.json({ status: "ok" }));
+
+// Maintain the per-user chat index server-side (the `userchats` rules deny client
+// writes). The client pings this after sending a message / creating a chat; we
+// verify the caller's Firebase ID token, confirm they're a participant, and
+// re-derive both users' previews from Firestore. See userchats.js.
+app.post("/api/userchats/sync", userchatsSyncHandler);
 
 // Start the server only when run directly (not when imported by tests).
 if (require.main === module) {

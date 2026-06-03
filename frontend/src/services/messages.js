@@ -2,6 +2,7 @@ import { addDoc, collection, updateDoc } from "firebase/firestore";
 import axios from "axios";
 import { db } from "@/lib/firebase";
 import { TRANSLATE_URL } from "@/lib/env";
+import { syncUserchats } from "@/services/userchats";
 
 // A few of the app's language codes differ from the LibreTranslate instance's
 // (e.g. the app stores "zh", the instance serves "zh-Hans"). Map on the way out.
@@ -18,10 +19,11 @@ const toLT = (code) => LT_CODE[code] || code;
 // `sourceLang` is stored per message so the recipient's "translated from …"
 // label reflects the *sender's* language, not the viewer's (ROADMAP P1).
 // The per-recipient chat-list preview (last message + ordering) is NOT written
-// here — a Cloud Function (`onMessageWritten`, functions/index.js) derives it
-// from the message subcollection and maintains both users' `userchats/{uid}/
-// items/{chatId}` docs server-side. That's what lets the `userchats` rules deny
-// all client writes (firebase/firestore.rules).
+// here — the client can't write `userchats` (rules deny it). Instead we ping the
+// backend (`POST /api/userchats/sync`, backend/userchats.js), which re-derives
+// both users' `userchats/{uid}/items/{chatId}` previews from the message
+// subcollection with Admin privileges. Best-effort: the message is already
+// persisted, so a sync failure only lags the sidebar preview.
 export async function sendChatMessage({
   chatId,
   currentUser,
@@ -68,4 +70,7 @@ export async function sendChatMessage({
     }
   }
 
+  // 3) Refresh both users' sidebar previews server-side (best-effort). Done after
+  //    the translation patch so the backend reads the final translatedText.
+  await syncUserchats(chatId);
 }

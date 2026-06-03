@@ -15,6 +15,7 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import useChatStore from "@/store/chatStore";
+import { syncUserchats } from "@/services/userchats";
 import { searchIcon, plusIcon } from "@/assets";
 import { format } from "timeago.js";
 import { toast, ToastContainer } from "react-toastify";
@@ -151,12 +152,14 @@ const ChatList = () => {
 
       // Create the chat document only. participantIds drives the Firestore
       // security rules (only these two users can read/write this chat). The
-      // `onChatCreated` Cloud Function seeds both users' userchats index entries
-      // — the client no longer writes userchats at all.
-      await setDoc(doc(collection(db, "chats")), {
+      // client no longer writes userchats — the backend seeds both users' index
+      // entries when we sync below (it's owner-only / server-only).
+      const chatRef = doc(collection(db, "chats"));
+      await setDoc(chatRef, {
         createdAt: serverTimestamp(),
         participantIds: [currentUser.id, userToAdd.id],
       });
+      await syncUserchats(chatRef.id);
 
       setToast("User added successfully!");
       setUser(null); // Reset the user state after adding

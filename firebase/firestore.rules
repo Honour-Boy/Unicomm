@@ -8,10 +8,10 @@ rules_version = '2';
 // everything and makes the app appear dead) and test mode (which is wide open
 // and expires).
 //
-// `userchats` is now maintained entirely server-side by Cloud Functions (see
-// functions/index.js) — the client never writes it, so the cross-user write hole
-// is closed: client writes are denied and the Admin SDK (which bypasses rules)
-// is the only writer.
+// `userchats` is now maintained entirely server-side by the Express backend
+// (backend/userchats.js, POST /api/userchats/sync) — the client never writes it,
+// so the cross-user write hole is closed: client writes are denied and the Admin
+// SDK (which bypasses rules) is the only writer.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -36,7 +36,7 @@ service cloud.firestore {
     }
 
     // Per-user chat index. Owner-read only. ALL client writes are denied — the
-    // index is maintained exclusively by Cloud Functions via the Admin SDK
+    // index is maintained exclusively by the Express backend via the Admin SDK
     // (which bypasses these rules). This is what closes the old cross-user write
     // hole. The live preview data lives in the `items` subcollection below.
     match /userchats/{userId} {
@@ -44,7 +44,7 @@ service cloud.firestore {
       allow write: if false;
 
       // One doc per conversation: userchats/{userId}/items/{chatId}. Same policy
-      // — owner reads, only Cloud Functions write.
+      // — owner reads, only the backend writes.
       match /items/{chatId} {
         allow read: if isSignedIn() && request.auth.uid == userId;
         allow write: if false;

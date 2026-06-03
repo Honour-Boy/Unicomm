@@ -1,3 +1,9 @@
+// Node 24+ removed the legacy `SlowBuffer`, which firebase-admin's jws/jwa crypto
+// chain still references. Render runs Node 22 (where it exists, so this is a
+// no-op), but shimming here lets the backend + scripts run on newer local Node.
+const _buf = require('buffer');
+if (!_buf.SlowBuffer) _buf.SlowBuffer = _buf.Buffer;
+
 const admin = require('firebase-admin');
 
 // Resolve service-account credentials in priority order so the SAME code runs

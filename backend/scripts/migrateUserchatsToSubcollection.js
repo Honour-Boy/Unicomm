@@ -11,8 +11,8 @@
 //   node backend/scripts/migrateUserchatsToSubcollection.js --commit     # write items
 //   node backend/scripts/migrateUserchatsToSubcollection.js --commit --delete-arrays
 //
-// Run order (see ROADMAP / handoff): deploy functions → run this (--commit) →
-// deploy the new client → tighten rules → re-run with --delete-arrays.
+// Run order (see ROADMAP / handoff): run this (--commit) → deploy backend + new
+// client (merge to main) → deploy rules → later re-run with --delete-arrays.
 
 // Node 24+ removed legacy SlowBuffer, which firebase-admin's jws/jwa chain still
 // references (crashes on Node 26 locally). Shim before requiring admin.
