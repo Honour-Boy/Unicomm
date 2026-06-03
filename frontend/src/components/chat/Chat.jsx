@@ -25,6 +25,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const [pageSize, setPageSize] = useState(PAGE_SIZE);
   const [hasMore, setHasMore] = useState(false);
   const [liveUser, setLiveUser] = useState(null);
+  const [liveCurrentUser, setLiveCurrentUser] = useState(null);
   const [text, setText] = useState("");
   const [sendError, setSendError] = useState(null);
   const [openEmoji, setOpenEmoji] = useState(false);
@@ -78,7 +79,9 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
 
   const loadOlder = () => setPageSize((n) => n + PAGE_SIZE);
 
-  // Subscribe to recipient for dynamic presence
+  // Subscribe to recipient for dynamic presence — and a live language, so when
+  // the other user changes their language the indicator + translate target
+  // follow it (the chatStore `user` is a stale snapshot taken at changeChat).
   useEffect(() => {
     if (!user?.id) return;
     const unsub = onSnapshot(doc(db, "users", user.id), (snap) => {
@@ -86,6 +89,18 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
     });
     return () => unsub();
   }, [user?.id]);
+
+  // Subscribe to the current user too: their stored `currentUser` (userStore) is
+  // a one-time getDoc, so without this a change to their own language wouldn't
+  // update the source indicator or the language messages are sent in.
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    const unsub = onSnapshot(doc(db, "users", currentUser.id), (snap) => {
+      if (snap.exists())
+        setLiveCurrentUser({ ...snap.data(), id: currentUser.id });
+    });
+    return () => unsub();
+  }, [currentUser?.id]);
 
   // Re-render periodically so "lastSeen" staleness updates without new writes
   const [, setTick] = useState(0);
@@ -96,10 +111,17 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
 
   const online = isUserOnline(liveUser);
 
+  // Prefer the live docs (which track language changes in real time) and fall
+  // back to the store snapshots until the first snapshot lands.
+  const effectiveCurrentUser = liveCurrentUser || currentUser;
+  const effectiveReceiver = liveUser || user;
+
   const currentUserLang = languages.find(
-    (lang) => lang.value === currentUser?.language
+    (lang) => lang.value === effectiveCurrentUser?.language
   );
-  const userLang = languages.find((lang) => lang.value === user?.language);
+  const userLang = languages.find(
+    (lang) => lang.value === effectiveReceiver?.language
+  );
 
   const sourceCode = currentUserLang?.value?.toUpperCase() || "EN";
   const targetCode = userLang?.value?.toUpperCase() || "EN";

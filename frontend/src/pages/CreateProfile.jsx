@@ -4,7 +4,7 @@ import { db, auth } from "@/lib/firebase"; // Ensure firebase.js is correctly co
 import { doc, setDoc, getDocs, collection } from "firebase/firestore";
 import { where, query } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
-import languages from "@/components/common/Languages";
+import { supportedLanguages } from "@/components/common/Languages";
 import "react-toastify/dist/ReactToastify.css";
 
 const Profile = () => {
@@ -170,7 +170,7 @@ const Profile = () => {
                 required
               >
                 <option value="">Select Language</option>
-                {languages.map((lang) => (
+                {supportedLanguages.map((lang) => (
                   <option key={lang.value} value={lang.value}>
                     {lang.label}
                   </option>
