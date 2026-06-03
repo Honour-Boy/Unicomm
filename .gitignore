@@ -11,8 +11,13 @@ backend/config/unicomm.json
 **/*firebase-adminsdk*.json
 **/serviceAccount*.json
 
-# Claude Code local working files
-.claude/
+# Claude Code — keep project skills/agents/commands; ignore only local-only bits
+.claude/settings.local.json
+.claude/worktrees/
+
+# Python bytecode (e.g. from skill scripts)
+__pycache__/
+*.pyc
 
 # build output
 dist
