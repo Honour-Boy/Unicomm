@@ -38,10 +38,10 @@ const ChatList = () => {
     if (!currentUser?.id) return;
 
     // The chat index is one doc per conversation under
-    // userchats/{uid}/items/{chatId}, maintained server-side by Cloud Functions.
+    // userchats/{uid}/items/{chatId}, maintained server-side by the backend.
     // It already carries the last message + sender + time, so we just resolve
     // the partner's profile (no per-chat message query). Ordered most-recent
-    // first by the function-maintained `updatedAt`.
+    // first by the backend-maintained `updatedAt`.
     const itemsQuery = query(
       collection(db, "userchats", currentUser.id, "items"),
       orderBy("updatedAt", "desc")

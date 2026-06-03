@@ -74,7 +74,8 @@ function Register() {
         id: user.uid,
         blocked: [],
       });
-      await setDoc(doc(db, "userchats", user.uid), { chats: [] });
+      // No userchats doc to seed: the index lives in the userchats/{uid}/items
+      // subcollection, written server-side (rules deny client userchats writes).
       toast.success("Account created. Let's set up your profile…");
       setTimeout(() => navigate("/create-profile"), 1500);
     } catch (error) {
