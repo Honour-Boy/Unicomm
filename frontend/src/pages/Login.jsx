@@ -8,6 +8,10 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
+// Backend base URL — configurable per environment (see frontend/.env.example).
+// Falls back to local Express so dev works with no env set.
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8001";
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -43,7 +47,7 @@ function Login() {
       const token = await user.getIdToken();
 
       const response = await axios.post(
-        "http://localhost:8001/api/signin",
+        `${API_URL}/api/signin`,
         {},
         {
           headers: {
@@ -92,7 +96,7 @@ function Login() {
       }
 
       const response = await axios.post(
-        "http://localhost:8001/api/signin",
+        `${API_URL}/api/signin`,
         {},
         {
           headers: {
