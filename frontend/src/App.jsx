@@ -70,9 +70,9 @@ function App() {
           <Route
             path="/create-profile"
             element={
-              <PublicRouter>
+              <PrivateRouter>
                 <Profile />
-              </PublicRouter>
+              </PrivateRouter>
             }
           />
           <Route
