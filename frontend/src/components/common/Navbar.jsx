@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import LogoutNow from "./LogoutNow";
 
 const Navbar = () => {
+  const navigate = useNavigate();
   return (
     <nav className="hidden md:flex w-16 lg:w-20 h-screen flex-col items-center justify-between bg-uni-bg border-r border-uni-border py-5">
       <div className="flex flex-col items-center gap-6">
@@ -10,7 +12,7 @@ const Navbar = () => {
           <span className="text-white font-bold text-lg">U</span>
         </div>
 
-        <NavIcon label="Chats" active>
+        <NavIcon label="Chats" active onClick={() => navigate("/chat")}>
           <svg
             width="20"
             height="20"
@@ -25,7 +27,7 @@ const Navbar = () => {
           </svg>
         </NavIcon>
 
-        <NavIcon label="Profile">
+        <NavIcon label="Profile" onClick={() => navigate("/settings")}>
           <svg
             width="20"
             height="20"
@@ -48,7 +50,7 @@ const Navbar = () => {
   );
 };
 
-const NavIcon = ({ children, label, active }) => {
+const NavIcon = ({ children, label, active, onClick }) => {
   const [hovered, setHovered] = useState(false);
   return (
     <div
@@ -57,6 +59,7 @@ const NavIcon = ({ children, label, active }) => {
       onMouseLeave={() => setHovered(false)}
     >
       <button
+        onClick={onClick}
         className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
           active
             ? "bg-indigo-500/15 text-indigo-300"
