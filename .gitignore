@@ -1,1 +1,24 @@
+# dependencies
 node_modules
+
+# env files — never commit real values (examples are kept)
+.env
+.env.*
+!.env.example
+
+# Firebase Admin service-account credentials — NEVER commit
+backend/config/unicomm.json
+**/*firebase-adminsdk*.json
+**/serviceAccount*.json
+
+# Claude Code local working files
+.claude/
+
+# build output
+dist
+build
+
+# logs / OS cruft
+*.log
+.DS_Store
+Thumbs.db
