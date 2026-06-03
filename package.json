@@ -3,7 +3,11 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:backend": "jest --selectProjects backend",
-    "test:frontend": "jest --selectProjects frontend"
+    "test:frontend": "jest --selectProjects frontend",
+    "build:frontend": "npm run build --prefix frontend",
+    "deploy:rules": "firebase deploy --only firestore:rules",
+    "deploy:hosting": "npm run build:frontend && firebase deploy --only hosting",
+    "deploy": "npm run build:frontend && firebase deploy --only hosting,firestore:rules,firestore:indexes"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.29.7",

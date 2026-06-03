@@ -86,6 +86,19 @@ point at where the work lands.
 
 ## Phase 4 — Platform & quality
 
+- [ ] **End-to-end encrypt all message content** — both the original (raw) text and every
+  translated variant must be encrypted so they are **never readable at the backend, in
+  Firestore, or by a project admin** — only by the participants. Encrypt/decrypt on the
+  client; persist only ciphertext (plus non-content metadata like timestamps and
+  `participantIds`). Design a key model (per-user keypairs, per-chat symmetric keys
+  exchanged between participants; keys never leave the client unencrypted) and a recovery
+  story. **Architectural dependency:** server-side translation (current LibreTranslate
+  approach, see item below) requires plaintext and is therefore incompatible with E2EE —
+  translation must move **client-side** (e.g. on-device / Bergamot, or a translate-then-
+  encrypt step on the sender's device) so the server only ever stores ciphertext. Scope
+  this together with the translation-engine choice, and update `firestore.rules` so rules
+  gate access by participant without depending on readable content.
+
 - [ ] **Adopt a better open-source translation engine** — move off the single public LibreTranslate
   instance (`translate.flossboxin.org.in`) to a more reliable FOSS engine: self-hosted
   LibreTranslate / Argos Translate, Mozilla Bergamot (Firefox Translations, client-side), or Meta
