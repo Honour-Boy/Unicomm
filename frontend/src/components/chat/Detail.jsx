@@ -46,7 +46,7 @@ const Detail = ({ onClose }) => {
     (user?.fullName?.charAt(1)?.toUpperCase() || "");
 
   const langLabel =
-    languages.find((l) => l.value === user?.language)?.label || "â€”";
+    languages.find((l) => l.value === user?.language)?.label || "—";
 
   const lastSeenText = (() => {
     const ls = liveUser?.lastSeen;
@@ -109,8 +109,8 @@ const Detail = ({ onClose }) => {
       <div className="flex-1 overflow-y-auto uni-scroll px-6 py-5 space-y-4">
         <InfoRow label="Email" value={user?.email} />
         <InfoRow label="Language" value={langLabel} />
-        <InfoRow label="Job Title" value={user?.jobTitle || "â€”"} />
-        <InfoRow label="Organization" value={user?.organization || "â€”"} />
+        <InfoRow label="Job Title" value={user?.jobTitle || "—"} />
+        <InfoRow label="Organization" value={user?.organization || "—"} />
         <div>
           <p className="text-xs font-semibold text-uni-muted uppercase tracking-wider mb-1">
             Bio
