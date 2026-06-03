@@ -1,17 +1,20 @@
 # UniComm Roadmap
 
-Near-term goal: **get the core chat working end-to-end (MVP)** before production polish.
+Vision: a minimal, functional, multilingual team chat where every user reads and works
+entirely in their own language — text and voice — across 1:1 and organization/team channels.
 
 Stack recap: React + Vite + Tailwind frontend, Firebase Firestore (`onSnapshot` realtime)
 + Firebase Auth, a thin Express + `firebase-admin` backend, and automatic message translation.
 
-Priorities are ordered P0 (blocks the app from working / reliability) → P3 (scale & polish).
-File references point at where the work lands.
+Work is grouped into phases. **Phase 1 (MVP) comes first** — the app must actually work and
+stop losing data before we expand features or redesign. Items are checkboxes; file references
+point at where the work lands.
 
 ---
 
-## P0 — Make it actually work & not lose data
+## Phase 1 — MVP: make core chat work & not lose data
 
+### P0 — Blockers
 - [ ] **Add Firestore security rules** — there are no `firestore.rules` / `firebase.json` in the
   repo. In locked mode every read/write is denied (app appears dead); in test mode it's wide open
   and auto-expires. Add participant-scoped rules (users readable; write-own; `chats`/`userchats`
@@ -21,12 +24,10 @@ File references point at where the work lands.
   `VITE_API_URL` env var, and re-evaluate whether the custom-token round-trip is needed at all
   (Firestore auth uses the Firebase session, not that token).
 - [ ] **Don't drop messages on translation failure** — in `Chat.jsx` the Firestore `updateDoc`
-  sits inside the same `try` as the LibreTranslate call (`translate.flossboxin.org.in`). If
-  translation fails, the message is never sent. Persist the original text first; treat translation
-  as best-effort with fallback to the original.
+  sits inside the same `try` as the translation call. If translation fails, the message is never
+  sent. Persist the original text first; treat translation as best-effort with fallback.
 
-## P1 — Correctness & UX
-
+### P1 — Correctness & UX
 - [ ] **Harden ChatList for new/empty users** — `ChatList.jsx` does `res.data() || []` then
   `.chats.map`, and reads `messages[messages.length-1]` / `b.updatedAt.seconds`, which throw when
   fields are missing or a server timestamp is still pending. Guard the undefined cases.
@@ -36,24 +37,77 @@ File references point at where the work lands.
 - [ ] **Correct the translation label** — `Chat.jsx` shows "translated from {sourceLabel}" using
   the *viewer's* language, not the *sender's*. Persist the source language per message.
 
-## P2 — Cleanup & hardening
-
+### P2 — Cleanup & hardening
 - [ ] Remove dead code / unused deps: `AddUser.jsx` is fully commented out; `socket.io-client`
   appears unused; `CreateProfile.jsx` leaves `loading=true` on the duplicate-username return.
 - [ ] Fix concurrency: `userchats` updates are read-modify-write (`Chat.jsx`, `ChatList.handleAdd`)
   and can lose updates under concurrent sends; React message keys collide when `createdAt.seconds`
   match.
 
-## P3 — Scale & polish (post-MVP)
+---
 
-- [ ] Move messages out of the single growing array in `chats/{id}` (hits the 1 MiB document cap
-  and re-downloads the whole history per snapshot) into a `messages` subcollection with pagination.
-- [ ] Add tests — backend `npm test` currently just errors; add register/login and send/translate
-  happy-path coverage.
-- [ ] Translation reliability — configurable provider + API key, skip when source == target, cache
-  results.
-- [ ] Deployment — Firebase Hosting (frontend) + a host for the Express backend; wire env vars;
+## Phase 2 — Feature epics
+
+- [ ] **Full profile editing** — today profiles are only set once in `CreateProfile.jsx`. Add a
+  Settings/Profile screen to edit all fields (username with uniqueness check, preferred language,
+  bio, DOB, gender, organization, job title) and avatar, writing back to `users/{uid}`. Changing
+  language must re-flow the UI and future translations.
+
+- [ ] **Language-first experience + full UI localization (i18n)** — let the user pick their
+  language at the **landing/intro screen** (before/at sign-up), persist it, and render the **entire
+  interface** in that language, not just chat messages. Introduce an i18n layer (e.g.
+  `react-i18next`) with translation catalogs for every UI string, language switcher, RTL support
+  where needed, and locale-aware dates/numbers. Keep this consistent with per-message translation.
+
+- [ ] **Organization / team chat (Teams-like, minimal & functional)** — extend beyond 1:1 to
+  teams/workspaces with group channels: a data model for teams + channels + memberships, group
+  message threads, member management (invite/remove/roles), and channel switching. Keep it
+  deliberately minimal — channels, group messages, mentions — not a full Teams clone. Cross-language
+  translation must work in group context (translate each message into each member's language).
+
+- [ ] **Voice chat with live translation** — voice messages and/or calls where speech is captured,
+  transcribed (speech-to-text), translated, and delivered to the recipient in their language as
+  translated captions and/or synthesized audio (text-to-speech). Prefer open-source components
+  (e.g. Whisper for STT, the chosen translation engine, Piper/Coqui for TTS). Advanced — scope a
+  voice-note MVP first, then real-time call translation.
+
+---
+
+## Phase 3 — UI/UX redesign
+
+- [ ] **Full UI/UX redesign of every screen** (landing/intro, auth, profile, chat list, chat room,
+  team/channel views) — establish a coherent design system (tokens, spacing, typography, components,
+  motion), strong accessibility, and polished responsive dark theme. Drive this work with **both**
+  the built-in `frontend-design` skill **and** the local `ui-ux-pro-max` skill (styles, palettes,
+  font pairings, UX/accessibility rules). Redesign should land after Phase 1 so we're not polishing
+  a broken flow, and should account for the new i18n/voice/team surfaces from Phase 2.
+
+---
+
+## Phase 4 — Platform & quality
+
+- [ ] **Adopt a better open-source translation engine** — move off the single public LibreTranslate
+  instance (`translate.flossboxin.org.in`) to a more reliable FOSS engine: self-hosted
+  LibreTranslate / Argos Translate, Mozilla Bergamot (Firefox Translations, client-side), or Meta
+  NLLB-200 (self-hosted). Make the provider configurable, skip translation when source == target,
+  and cache results. Pick based on language coverage, quality, and hosting cost.
+- [ ] **Messages subcollection + pagination** — move messages out of the single growing array in
+  `chats/{id}` (hits the 1 MiB document cap and re-downloads the whole history per snapshot) into a
+  `messages` subcollection with pagination.
+- [ ] **Tests** — backend `npm test` currently just errors; add register/login and send/translate
+  happy-path coverage, plus tests for new features.
+- [ ] **Deployment** — Firebase Hosting (frontend) + a host for the Express backend; wire env vars;
   lock CORS to the real origin.
+
+---
+
+## Final — License & docs (do last)
+
+- [ ] **License setup** — confirm/refresh the project license (a `LICENSE` already exists) and add
+  proper attribution for any third-party / open-source components introduced (translation engine,
+  STT/TTS, i18n libraries).
+- [ ] **README update** — rewrite the README to reflect the redesigned, localized, team-capable app:
+  features, screenshots, setup (env vars, Firebase rules, translation engine), and architecture.
 
 ---
 
