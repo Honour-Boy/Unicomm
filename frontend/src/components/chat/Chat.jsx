@@ -15,8 +15,7 @@ import languages from "@/components/common/Languages";
 import { isUserOnline } from "@/hooks/usePresence";
 import { sendChatMessage } from "@/services/messages";
 import MessageBubble from "@/components/chat/MessageBubble";
-import Spinner from "@/components/ui/Spinner";
-import { SendIcon, EmojiIcon, Arrow, Dot } from "@/components/ui/icons";
+import { SendIcon, EmojiIcon, Arrow } from "@/components/ui/icons";
 
 // How many messages to load initially and per "load older" click.
 const PAGE_SIZE = 25;
@@ -27,7 +26,6 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const [hasMore, setHasMore] = useState(false);
   const [liveUser, setLiveUser] = useState(null);
   const [text, setText] = useState("");
-  const [isSending, setIsSending] = useState(false);
   const [sendError, setSendError] = useState(null);
   const [openEmoji, setOpenEmoji] = useState(false);
   const [expandedOriginals, setExpandedOriginals] = useState({});
@@ -115,9 +113,12 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const labelForLang = (code) =>
     languages.find((l) => l.value === code)?.label;
 
+  // Fire-and-forget: the message persists first and shows up via the live
+  // subcollection snapshot, so we don't block the UI on the network. Translation
+  // patches in afterward (best-effort). Only a genuine persist failure surfaces
+  // (the retry affordance below).
   const doSend = async (messageText) => {
     if (!messageText || !chatId) return;
-    setIsSending(true);
     setSendError(null);
     try {
       await sendChatMessage({
@@ -128,18 +129,16 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
         sourceLang: currentUserLang?.value || "en",
         targetLang: userLang?.value || "en",
       });
-      setText("");
     } catch (err) {
       console.log(err);
       setSendError(messageText);
-    } finally {
-      setIsSending(false);
     }
   };
 
   const handleSend = () => {
     const t = text.trim();
     if (!t) return;
+    setText(""); // clear immediately for a real-time feel
     doSend(t);
   };
 
@@ -258,19 +257,8 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
           );
         })}
 
-        {/* Sending / translating indicator */}
-        {isSending && (
-          <div className="flex justify-end animate-fade-in-up">
-            <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-uni-surface border border-uni-border text-uni-muted text-xs">
-              <Dot /> <Dot style={{ animationDelay: "150ms" }} />{" "}
-              <Dot style={{ animationDelay: "300ms" }} />
-              <span className="ml-1">Translating…</span>
-            </div>
-          </div>
-        )}
-
-        {/* Error state with retry */}
-        {sendError && !isSending && (
+        {/* Error state with retry (only on a genuine send/persist failure) */}
+        {sendError && (
           <div className="flex justify-end animate-fade-in-up">
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
               <span>Couldn&apos;t send your message.</span>
@@ -337,11 +325,11 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
 
             <button
               onClick={handleSend}
-              disabled={disabled || !text.trim() || isSending}
+              disabled={disabled || !text.trim()}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-bubble-sent text-white shadow-bubble hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
               aria-label="Send"
             >
-              {isSending ? <Spinner size={16} /> : <SendIcon />}
+              <SendIcon />
             </button>
           </div>
         </div>
