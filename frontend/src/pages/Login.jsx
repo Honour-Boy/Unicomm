@@ -6,14 +6,9 @@ import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { toast, ToastContainer } from "react-toastify";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
 import AuthLayout from "@/components/ui/AuthLayout";
 import Field from "@/components/ui/Field";
 import Spinner from "@/components/ui/Spinner";
-
-// Backend base URL — configurable per environment (see frontend/.env.example).
-// Falls back to local Express so dev works with no env set.
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8001";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -41,35 +36,12 @@ function Login() {
     }
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      const user = userCredential.user;
-      const token = await user.getIdToken();
-
-      const response = await axios.post(
-        `${API_URL}/api/signin`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        localStorage.setItem("authToken", response.data.token);
-        toast.success("Signed in. Redirecting…");
-        setTimeout(() => {
-          navigate("/chat");
-          window.location.reload();
-        }, 1500);
-      } else {
-        toast.error("Sign-in failed.");
-      }
+      // The Firebase session (set by signInWithEmailAndPassword) is what
+      // authenticates Firestore and drives routing via onAuthStateChanged.
+      // No backend round-trip needed.
+      await signInWithEmailAndPassword(auth, email, password);
+      toast.success("Signed in. Redirecting…");
+      navigate("/chat");
     } catch (error) {
       console.error(error);
       toast.error("Invalid email or password.");
@@ -83,7 +55,6 @@ function Login() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      const token = await user.getIdToken();
 
       const userDocRef = doc(db, "users", user.uid);
       const userDocSnap = await getDoc(userDocRef);
@@ -98,32 +69,15 @@ function Login() {
         await setDoc(doc(db, "userchats", user.uid), { chats: [] });
       }
 
-      const response = await axios.post(
-        `${API_URL}/api/signin`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        localStorage.setItem("authToken", response.data.token);
-        toast.success("Signed in with Google");
-
-        const userData = (await getDoc(userDocRef)).data();
-        setTimeout(() => {
-          if (!userData.username) {
-            navigate("/create-profile");
-          } else {
-            navigate("/chat");
-            window.location.reload();
-          }
-        }, 1500);
+      // Send first-time users to profile setup, returning users straight to
+      // chat. This explicit navigate runs after the auth state has settled, so
+      // it wins over PublicRouter's "authenticated → /chat" redirect.
+      toast.success("Signed in with Google");
+      const userData = (await getDoc(userDocRef)).data();
+      if (!userData?.username) {
+        navigate("/create-profile");
       } else {
-        toast.error("Google sign-in failed.");
+        navigate("/chat");
       }
     } catch (error) {
       console.error(error);
