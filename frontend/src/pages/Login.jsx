@@ -66,7 +66,8 @@ function Login() {
           id: user.uid,
           blocked: [],
         });
-        await setDoc(doc(db, "userchats", user.uid), { chats: [] });
+        // No userchats doc to seed: the index lives in the userchats/{uid}/items
+        // subcollection, written server-side (rules deny client userchats writes).
       }
 
       // Send first-time users to profile setup, returning users straight to
