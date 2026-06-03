@@ -9,7 +9,8 @@
   "scripts": {
     "serve": "firebase emulators:start --only functions,firestore",
     "deploy": "firebase deploy --only functions",
-    "logs": "firebase functions:log"
+    "logs": "firebase functions:log",
+    "test": "firebase emulators:exec --only firestore,functions --project demo-unicomm \"node test/triggers.test.js\""
   },
   "dependencies": {
     "firebase-admin": "^12.6.0",

@@ -19,6 +19,13 @@
 // patches needed a read-modify-write transaction and could race. One doc per
 // chat = a plain idempotent `set`, no transaction, no concurrency hazard.)
 
+// Node 24+ removed the legacy `SlowBuffer`, which firebase-admin's jws/jwa chain
+// still references. The deployed runtime is Node 20 (where SlowBuffer exists, so
+// this is a no-op), but the local Firebase emulator runs functions under the
+// host's Node — shim it so `npm test` works on newer Node. Harmless in prod.
+const _buf = require("buffer");
+if (!_buf.SlowBuffer) _buf.SlowBuffer = _buf.Buffer;
+
 const {
   onDocumentCreated,
   onDocumentWritten,
