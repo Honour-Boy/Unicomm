@@ -171,9 +171,11 @@ const ChatList = () => {
         return;
       }
 
-      // Create new chat document
+      // Create new chat document. participantIds drives the Firestore security
+      // rules (only these two users can read/append to this chat).
       await setDoc(newChatRef, {
         createdAt: timestamp,
+        participantIds: [currentUser.id, userToAdd.id],
         messages: [],
       });
 
