@@ -1,6 +1,6 @@
-import { useEffect } from "react";
+﻿import { useEffect } from "react";
 import { doc, serverTimestamp, updateDoc } from "firebase/firestore";
-import { db } from "./firebase";
+import { db } from "@/lib/firebase";
 
 /**
  * Maintains the current user's presence in Firestore:

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import useUserStore from "../Firebase/userStore";
+﻿import { useEffect, useState } from "react";
+import useUserStore from "@/store/userStore";
 import {
   doc,
   getDoc,
@@ -14,13 +14,13 @@ import {
   where,
   limit,
 } from "firebase/firestore";
-import { db } from "../Firebase/firebase";
-import useChatStore from "../Firebase/chatStore";
-import { searchIcon, plusIcon } from "../../assets";
+import { db } from "@/lib/firebase";
+import useChatStore from "@/store/chatStore";
+import { searchIcon, plusIcon } from "@/assets";
 import { format } from "timeago.js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import LoadingSpinner from "../Common/LoadingComponent";
+import LoadingSpinner from "@/components/common/LoadingComponent";
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);

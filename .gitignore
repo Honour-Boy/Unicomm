@@ -17,6 +17,8 @@ backend/config/unicomm.json
 CLAUDE.md
 ENGINEERING_BIBLE.md
 handoff.md
+ROADMAP.md
+DEPLOYMENT.md
 docs/
 
 # Python bytecode (e.g. from skill scripts)

@@ -1,9 +1,9 @@
-// Smoke/render test for a pure presentational component. Deliberately uses a
+﻿// Smoke/render test for a pure presentational component. Deliberately uses a
 // component with no Firebase / import.meta.env dependency so it exercises the full
-// frontend harness — ESM imports, JSX transform, jsdom, and Testing Library — in
+// frontend harness â€” ESM imports, JSX transform, jsdom, and Testing Library â€” in
 // isolation, without booting the whole app.
 import { render } from '@testing-library/react';
-import LoadingSpinner from '../components/Common/LoadingComponent';
+import LoadingSpinner from '@/components/common/LoadingComponent';
 
 test('renders the loading spinner without crashing', () => {
   const { container } = render(<LoadingSpinner />);

@@ -1,19 +1,15 @@
 import { useEffect, useRef, useState } from "react";
-import {
-  arrayUnion,
-  doc,
-  onSnapshot,
-  updateDoc,
-  getDoc,
-} from "firebase/firestore";
-import { db } from "../Firebase/firebase";
-import useChatStore from "../Firebase/chatStore";
-import useUserStore from "../Firebase/userStore";
-import { format } from "timeago.js";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import useChatStore from "@/store/chatStore";
+import useUserStore from "@/store/userStore";
 import EmojiPicker from "emoji-picker-react";
-import axios from "axios";
-import languages from "../Common/Languages";
-import { isUserOnline } from "../Firebase/usePresence";
+import languages from "@/components/common/Languages";
+import { isUserOnline } from "@/hooks/usePresence";
+import { sendChatMessage } from "@/services/messages";
+import MessageBubble from "@/components/chat/MessageBubble";
+import Spinner from "@/components/ui/Spinner";
+import { SendIcon, EmojiIcon, Arrow, Dot } from "@/components/ui/icons";
 
 const Chat = ({ onHeaderClick, detailOpen }) => {
   const [chat, setChat] = useState("");
@@ -75,45 +71,14 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
     if (!messageText || !chatId) return;
     setIsSending(true);
     setSendError(null);
-
-    let translatedText = messageText;
     try {
-      const response = await axios.post(
-        "https://translate.flossboxin.org.in/translate",
-        {
-          q: messageText,
-          source: currentUserLang?.value || "en",
-          target: userLang?.value || "en",
-        },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      if (response.status === 200) {
-        translatedText = response.data.translatedText;
-      }
-
-      await updateDoc(doc(db, "chats", chatId), {
-        messages: arrayUnion({
-          senderId: currentUser.id,
-          text: messageText,
-          translatedText,
-          createdAt: new Date(),
-        }),
-      });
-
-      const userIDs = [currentUser.id, user.id];
-      userIDs.forEach(async (id) => {
-        const userChatsRef = doc(db, "userchats", id);
-        const snap = await getDoc(userChatsRef);
-        if (snap.exists()) {
-          const data = snap.data();
-          const idx = data.chats.findIndex((c) => c.chatId === chatId);
-          if (idx !== -1) {
-            data.chats[idx].lastMessage = messageText;
-            data.chats[idx].lastTranslatedMessage = translatedText;
-            data.chats[idx].updatedAt = Date.now();
-            await updateDoc(userChatsRef, { chats: data.chats });
-          }
-        }
+      await sendChatMessage({
+        chatId,
+        currentUser,
+        receiver: user,
+        text: messageText,
+        sourceLang: currentUserLang?.value || "en",
+        targetLang: userLang?.value || "en",
       });
       setText("");
     } catch (err) {
@@ -220,77 +185,17 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
         )}
 
         {chat?.messages?.map((message, idx) => {
-          const isMine = message.senderId === currentUser?.id;
           const key = message?.createdAt?.seconds || idx;
-          const showOriginal = !!expandedOriginals[key];
-          const hasTranslation =
-            message.translatedText && message.translatedText !== message.text;
-
           return (
-            <div
+            <MessageBubble
               key={key}
-              className={`flex w-full ${
-                isMine ? "justify-end animate-slide-in-right" : "justify-start animate-slide-in-left"
-              }`}
-            >
-              <div
-                className={`flex flex-col max-w-[85%] sm:max-w-[70%] md:max-w-[60%] ${
-                  isMine ? "items-end" : "items-start"
-                }`}
-              >
-                <div
-                  className={`px-4 py-2.5 rounded-2xl text-sm md:text-[15px] leading-relaxed break-words ${
-                    isMine
-                      ? "bg-bubble-sent text-white shadow-bubble rounded-br-md"
-                      : "bg-uni-surface text-uni-text rounded-bl-md border border-uni-border"
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap text-left">
-                    {isMine
-                      ? message.text
-                      : showOriginal
-                      ? message.text
-                      : message.translatedText || message.text}
-                  </p>
-                </div>
-
-                {/* Translation label / toggle */}
-                {hasTranslation && (
-                  <div
-                    className={`mt-1 flex items-center gap-2 text-[11px] ${
-                      isMine ? "text-indigo-300/80" : "text-uni-muted"
-                    }`}
-                  >
-                    {isMine ? (
-                      <span className="flex items-center gap-1">
-                        <TranslateIcon />
-                        Translated to {targetLabel}
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => toggleOriginal(key)}
-                        className="flex items-center gap-1 hover:text-indigo-300 transition-colors"
-                      >
-                        <TranslateIcon />
-                        {showOriginal
-                          ? "Show translation"
-                          : `translated from ${sourceLabel}`}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                <span
-                  className={`text-[10px] text-uni-muted mt-0.5 ${
-                    isMine ? "text-right" : "text-left"
-                  }`}
-                >
-                  {message.createdAt?.toDate
-                    ? format(message.createdAt.toDate())
-                    : ""}
-                </span>
-              </div>
-            </div>
+              message={message}
+              isMine={message.senderId === currentUser?.id}
+              showOriginal={!!expandedOriginals[key]}
+              targetLabel={targetLabel}
+              sourceLabel={sourceLabel}
+              onToggleOriginal={() => toggleOriginal(key)}
+            />
           );
         })}
 
@@ -377,7 +282,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
               className="flex items-center justify-center w-9 h-9 rounded-full bg-bubble-sent text-white shadow-bubble hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
               aria-label="Send"
             >
-              {isSending ? <Spinner /> : <SendIcon />}
+              {isSending ? <Spinner size={16} /> : <SendIcon />}
             </button>
           </div>
         </div>
@@ -394,108 +299,5 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
     </div>
   );
 };
-
-/* --- Inline icon helpers --- */
-const TranslateIcon = () => (
-  <svg
-    width="11"
-    height="11"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m5 8 6 6" />
-    <path d="m4 14 6-6 2-3" />
-    <path d="M2 5h12" />
-    <path d="M7 2h1" />
-    <path d="m22 22-5-10-5 10" />
-    <path d="M14 18h6" />
-  </svg>
-);
-
-const SendIcon = () => (
-  <svg
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m22 2-7 20-4-9-9-4Z" />
-    <path d="M22 2 11 13" />
-  </svg>
-);
-
-const EmojiIcon = () => (
-  <svg
-    width="20"
-    height="20"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <path d="M8 14s1.5 2 4 2 4-2 4-2" />
-    <line x1="9" y1="9" x2="9.01" y2="9" />
-    <line x1="15" y1="9" x2="15.01" y2="9" />
-  </svg>
-);
-
-const Arrow = () => (
-  <svg
-    width="12"
-    height="12"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2.4"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M5 12h14" />
-    <path d="m13 6 6 6-6 6" />
-  </svg>
-);
-
-const Dot = ({ style }) => (
-  <span
-    className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse-dot"
-    style={style}
-  />
-);
-
-const Spinner = () => (
-  <svg
-    className="animate-spin"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    <circle
-      cx="12"
-      cy="12"
-      r="9"
-      stroke="currentColor"
-      strokeWidth="3"
-      opacity="0.25"
-    />
-    <path
-      d="M21 12a9 9 0 0 1-9 9"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-  </svg>
-);
 
 export default Chat;

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+﻿import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Intro from "./pages/Intro";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -6,15 +6,15 @@ import Profile from "./pages/CreateProfile";
 import ForgotPassword from "./pages/ForgotPassword";
 import ChatRoom from "./pages/ChatRoom";
 import NotFound from "./pages/NotFound";
-import PrivateRouter from "./components/Routers/PrivateRouter";
-import PublicRouter from "./components/Routers/PublicRouter";
+import PrivateRouter from "@/components/routers/PrivateRouter";
+import PublicRouter from "@/components/routers/PublicRouter";
 import { useEffect } from "react";
-import { auth } from "./components/Firebase/firebase";
+import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import useUserStore from "./components/Firebase/userStore";
-import usePresence from "./components/Firebase/usePresence";
+import useUserStore from "@/store/userStore";
+import usePresence from "@/hooks/usePresence";
 import "./styles/App.css";
-import LoadingSpinner from "./components/Common/LoadingComponent";
+import LoadingSpinner from "@/components/common/LoadingComponent";
 
 function App() {
   const { isLoading, fetchUserInfo, currentUser } = useUserStore();
@@ -82,7 +82,7 @@ function App() {
                 {isLoading ? (
                   <div className="flex items-center justify-center bg-uni-bg w-screen h-screen text-uni-text flex-col gap-3">
                     <LoadingSpinner />
-                    <span className="text-sm text-uni-muted">Loading…</span>
+                    <span className="text-sm text-uni-muted">Loadingâ€¦</span>
                   </div>
                 ) : (
                   <ChatRoom />
