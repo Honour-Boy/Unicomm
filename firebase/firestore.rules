@@ -8,10 +8,10 @@ rules_version = '2';
 // everything and makes the app appear dead) and test mode (which is wide open
 // and expires).
 //
-// REMAINING LIMITATION (tracked in ROADMAP.md): a message sender still writes to
-// the *recipient's* `userchats` doc on send, so `userchats` updates can't yet be
-// restricted to the owner. Tightening that needs moving the cross-user write to
-// the backend / a Cloud Function. See the TODO on `userchats` below.
+// `userchats` is now maintained entirely server-side by Cloud Functions (see
+// functions/index.js) — the client never writes it, so the cross-user write hole
+// is closed: client writes are denied and the Admin SDK (which bypasses rules)
+// is the only writer.
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -35,14 +35,20 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Per-user chat index. Owner can always read. Any signed-in user may write
-    // it because the sender updates the recipient's lastMessage on send.
-    // TODO(security): restrict updates to the owner once the cross-user
-    // lastMessage write moves to the backend / a Cloud Function.
+    // Per-user chat index. Owner-read only. ALL client writes are denied — the
+    // index is maintained exclusively by Cloud Functions via the Admin SDK
+    // (which bypasses these rules). This is what closes the old cross-user write
+    // hole. The live preview data lives in the `items` subcollection below.
     match /userchats/{userId} {
       allow read: if isSignedIn() && request.auth.uid == userId;
-      allow create, update: if isSignedIn();
-      allow delete: if false;
+      allow write: if false;
+
+      // One doc per conversation: userchats/{userId}/items/{chatId}. Same policy
+      // — owner reads, only Cloud Functions write.
+      match /items/{chatId} {
+        allow read: if isSignedIn() && request.auth.uid == userId;
+        allow write: if false;
+      }
     }
 
     // Chat documents (participant list + metadata; messages live in the
