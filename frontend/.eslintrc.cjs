@@ -18,4 +18,11 @@ module.exports = {
       { allowConstantExport: true },
     ],
   },
+  overrides: [
+    {
+      // Jest test files use jest globals (test, expect, beforeEach, …).
+      files: ['**/*.test.{js,jsx}', 'src/tests/**'],
+      env: { jest: true },
+    },
+  ],
 }
