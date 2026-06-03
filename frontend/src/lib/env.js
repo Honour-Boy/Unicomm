@@ -7,3 +7,8 @@
 export const TRANSLATE_URL =
   import.meta.env.VITE_TRANSLATE_URL ||
   "https://my-gpt-translator.hf.space/translate";
+
+// Express backend base URL (Render). Used for server-side maintenance of the
+// userchats index. Defaults to local dev; set VITE_API_URL in Vercel/CI.
+export const API_URL =
+  import.meta.env.VITE_API_URL || "http://localhost:8001";

@@ -9,21 +9,19 @@ jest.mock("axios");
 jest.mock("@/lib/firebase", () => ({ db: {} }));
 // @/lib/env uses Vite's import.meta.env, which Jest can't parse — mock it.
 jest.mock("@/lib/env", () => ({ TRANSLATE_URL: "https://translate.test/translate" }));
+// The userchats preview is maintained server-side (backend /api/userchats/sync),
+// so sendChatMessage only writes the message + patches its translation, then
+// fires a best-effort sync (mocked here).
 jest.mock("firebase/firestore", () => ({
   addDoc: jest.fn(),
   collection: jest.fn(() => "messagesCol"),
-  doc: jest.fn(() => "userChatsRef"),
   updateDoc: jest.fn(),
-  // No userchats doc in these tests → the transaction returns early.
-  runTransaction: jest.fn(async (_db, fn) =>
-    fn({ get: async () => ({ exists: () => false }), update: jest.fn() })
-  ),
 }));
+jest.mock("@/services/userchats", () => ({ syncUserchats: jest.fn() }));
 
 const baseArgs = {
   chatId: "chat1",
   currentUser: { id: "me" },
-  receiver: { id: "them" },
   text: "hello",
   sourceLang: "en",
   targetLang: "fr",

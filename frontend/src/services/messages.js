@@ -1,13 +1,8 @@
-import {
-  addDoc,
-  collection,
-  doc,
-  runTransaction,
-  updateDoc,
-} from "firebase/firestore";
+import { addDoc, collection, updateDoc } from "firebase/firestore";
 import axios from "axios";
 import { db } from "@/lib/firebase";
 import { TRANSLATE_URL } from "@/lib/env";
+import { syncUserchats } from "@/services/userchats";
 
 // A few of the app's language codes differ from the LibreTranslate instance's
 // (e.g. the app stores "zh", the instance serves "zh-Hans"). Map on the way out.
@@ -23,10 +18,15 @@ const toLT = (code) => LT_CODE[code] || code;
 // original (translatedText stays equal to text, so no misleading label shows).
 // `sourceLang` is stored per message so the recipient's "translated from …"
 // label reflects the *sender's* language, not the viewer's (ROADMAP P1).
+// The per-recipient chat-list preview (last message + ordering) is NOT written
+// here — the client can't write `userchats` (rules deny it). Instead we ping the
+// backend (`POST /api/userchats/sync`, backend/userchats.js), which re-derives
+// both users' `userchats/{uid}/items/{chatId}` previews from the message
+// subcollection with Admin privileges. Best-effort: the message is already
+// persisted, so a sync failure only lags the sidebar preview.
 export async function sendChatMessage({
   chatId,
   currentUser,
-  receiver,
   text,
   sourceLang,
   targetLang,
@@ -70,29 +70,7 @@ export async function sendChatMessage({
     }
   }
 
-  // 3) Update both users' userchats preview (best-effort, with the final text).
-  //    Wrapped in a transaction so the array read-modify-write can't lose a
-  //    concurrent send's update (Firestore can't patch a single array element).
-  const userIDs = [currentUser.id, receiver.id];
-  for (const id of userIDs) {
-    const userChatsRef = doc(db, "userchats", id);
-    try {
-      await runTransaction(db, async (tx) => {
-        const snap = await tx.get(userChatsRef);
-        if (!snap.exists()) return;
-        const chats = snap.data().chats || [];
-        const idx = chats.findIndex((c) => c.chatId === chatId);
-        if (idx === -1) return;
-        chats[idx] = {
-          ...chats[idx],
-          lastMessage: text,
-          lastTranslatedMessage: translatedText,
-          updatedAt: Date.now(),
-        };
-        tx.update(userChatsRef, { chats });
-      });
-    } catch (err) {
-      console.warn("Failed to update userchats preview.", err?.message || err);
-    }
-  }
+  // 3) Refresh both users' sidebar previews server-side (best-effort). Done after
+  //    the translation patch so the backend reads the final translatedText.
+  await syncUserchats(chatId);
 }

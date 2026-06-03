@@ -5,18 +5,17 @@ import {
   getDoc,
   onSnapshot,
   setDoc,
-  updateDoc,
   collection,
   query,
   getDocs,
   serverTimestamp,
-  arrayUnion,
   where,
   limit,
   orderBy,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import useChatStore from "@/store/chatStore";
+import { syncUserchats } from "@/services/userchats";
 import { searchIcon, plusIcon } from "@/assets";
 import { format } from "timeago.js";
 import { toast, ToastContainer } from "react-toastify";
@@ -36,45 +35,30 @@ const ChatList = () => {
   const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUser?.id) return;
 
-    const unSub = onSnapshot(
-      doc(db, "userchats", currentUser.id),
-      async (res) => {
-        const items = res.data() || {};
-        const list = items.chats || [];
-        const promises = list.map(async (item) => {
-          const userDocRef = doc(db, "users", item.receiverId);
-          const userDocSnap = await getDoc(userDocRef);
-          const user = userDocSnap.data();
-
-          // Last message now lives in the chats/{id}/messages subcollection.
-          const lastSnap = await getDocs(
-            query(
-              collection(db, "chats", item.chatId, "messages"),
-              orderBy("createdAt", "desc"),
-              limit(1)
-            )
-          );
-          const last = lastSnap.docs[0]?.data();
-          const time = last?.createdAt || null;
-          const lastId = last?.senderId || null;
-
-          return { ...item, user, lastUpdated: time, updatedAt: items.updatedAt, id: lastId };
-        });
-        const chatData = await Promise.all(promises);
-
-        setChats(
-          chatData.sort(
-            (a, b) => (b.updatedAt?.seconds || 0) - (a.updatedAt?.seconds || 0)
-          )
-        );
-      }
+    // The chat index is one doc per conversation under
+    // userchats/{uid}/items/{chatId}, maintained server-side by Cloud Functions.
+    // It already carries the last message + sender + time, so we just resolve
+    // the partner's profile (no per-chat message query). Ordered most-recent
+    // first by the function-maintained `updatedAt`.
+    const itemsQuery = query(
+      collection(db, "userchats", currentUser.id, "items"),
+      orderBy("updatedAt", "desc")
     );
 
-    return () => {
-      unSub();
-    };
+    const unSub = onSnapshot(itemsQuery, async (snap) => {
+      const items = snap.docs.map((d) => d.data());
+      const chatData = await Promise.all(
+        items.map(async (item) => {
+          const userSnap = await getDoc(doc(db, "users", item.receiverId));
+          return { ...item, user: { ...userSnap.data(), id: item.receiverId } };
+        })
+      );
+      setChats(chatData);
+    });
+
+    return () => unSub();
   }, [currentUser?.id]);
 
   useEffect(() => {
@@ -96,7 +80,7 @@ const ChatList = () => {
           .filter(
             (suggestion) =>
               suggestion.id !== currentUser?.id &&
-              !chats.some((chat) => chat.user.id === suggestion.id) // Exclude users already in chat list
+              !chats.some((chat) => chat.user?.id === suggestion.id) // Exclude users already in chat list
           );
 
         setSuggestions(suggestionList);
@@ -141,7 +125,7 @@ const ChatList = () => {
   };
 
   const handleAdd = async (userToAdd) => {
-    if (!userToAdd || !currentUser) return;
+    if (!userToAdd || !currentUser || isAdding) return;
 
     // Check if the user is trying to add themselves
     if (userToAdd.id === currentUser.id) {
@@ -150,66 +134,33 @@ const ChatList = () => {
     }
     setIsAdding(true);
     setToast("Adding user to chat list...");
-    const chatRef = collection(db, "chats");
-    const userChatsRef = collection(db, "userchats");
     try {
-      const newChatRef = doc(chatRef);
-
-      const timestamp = serverTimestamp(); // Get server timestamp
-
-      // Ensure the userchats document exists for the other user
-      const userDocRef = doc(userChatsRef, userToAdd.id);
-      const userDocSnap = await getDoc(userDocRef);
-      if (!userDocSnap.exists()) {
-        await setDoc(userDocRef, { chats: [] });
-      }
-
-      // Ensure the userchats document exists for the current user
-      const currentUserDocRef = doc(userChatsRef, currentUser.id);
-      const currentUserDocSnap = await getDoc(currentUserDocRef);
-      if (!currentUserDocSnap.exists()) {
-        await setDoc(currentUserDocRef, { chats: [] });
-      }
-
-      // Check if the chat already exists for the current user
-      const currentUserChats = currentUserDocSnap.data()?.chats || [];
-      const existingChat = currentUserChats.find(
-        (chat) => chat.receiverId === userToAdd.id
+      // Prevent duplicates: is there already an index entry for this partner?
+      // (The index is owner-readable; this is a read, not a write.)
+      const existing = await getDocs(
+        query(
+          collection(db, "userchats", currentUser.id, "items"),
+          where("receiverId", "==", userToAdd.id),
+          limit(1)
+        )
       );
-
-      if (existingChat) {
+      if (!existing.empty) {
         setToast("User is already in your chat list.");
         setIsAdding(false);
         return;
       }
 
-      // Create new chat document. participantIds drives the Firestore security
-      // rules (only these two users can read/write this chat). Messages live in
-      // the chats/{id}/messages subcollection, not on this doc.
-      await setDoc(newChatRef, {
-        createdAt: timestamp,
+      // Create the chat document only. participantIds drives the Firestore
+      // security rules (only these two users can read/write this chat). The
+      // client no longer writes userchats — the backend seeds both users' index
+      // entries when we sync below (it's owner-only / server-only).
+      const chatRef = doc(collection(db, "chats"));
+      await setDoc(chatRef, {
+        createdAt: serverTimestamp(),
         participantIds: [currentUser.id, userToAdd.id],
       });
+      await syncUserchats(chatRef.id);
 
-      // Update "userchats" collection for the other user
-      await updateDoc(userDocRef, {
-        chats: arrayUnion({
-          chatId: newChatRef.id,
-          lastMessage: "",
-          receiverId: currentUser.id,
-        }),
-        updatedAt: timestamp,
-      });
-
-      // Update "userchats" collection for the current user
-      await updateDoc(currentUserDocRef, {
-        chats: arrayUnion({
-          chatId: newChatRef.id,
-          lastMessage: "",
-          receiverId: userToAdd.id,
-        }),
-        updatedAt: timestamp,
-      });
       setToast("User added successfully!");
       setUser(null); // Reset the user state after adding
     } catch (err) {
@@ -224,7 +175,7 @@ const ChatList = () => {
   };
 
   const filteredChats = chats.filter((c) =>
-    c.user.username.toLowerCase().includes(input.toLowerCase())
+    c.user?.username?.toLowerCase().includes(input.toLowerCase())
   );
 
   const truncateMessage = (message, wordLimit = 4) => {
@@ -315,14 +266,14 @@ const ChatList = () => {
             onClick={() => handleSelect(chat.chatId, chat.user)}
           >
             <div className="user-avatar-small text-sm">
-              {(chat.user.fullName?.split(" ")[0]?.charAt(0) || "") +
-                (chat.user.fullName?.split(" ")[0]?.charAt(1)?.toUpperCase() ||
+              {(chat.user?.fullName?.split(" ")[0]?.charAt(0) || "") +
+                (chat.user?.fullName?.split(" ")[0]?.charAt(1)?.toUpperCase() ||
                   "")}
             </div>
             <div className="flex flex-col gap-0.5 flex-1 min-w-0">
               <div className="flex justify-between items-center gap-2">
                 <span className="font-medium text-left text-white text-sm truncate">
-                  {chat.user.username}
+                  {chat.user?.username}
                 </span>
                 <span className="text-[10px] text-uni-muted shrink-0">
                   {chat.lastUpdated?.toDate
@@ -331,9 +282,9 @@ const ChatList = () => {
                 </span>
               </div>
               <p className="text-xs text-left text-uni-muted truncate">
-                {chat.user.blocked?.includes(currentUser?.id)
+                {chat.user?.blocked?.includes(currentUser?.id)
                   ? "Blocked"
-                  : chat.id === currentUser?.id
+                  : chat.lastSenderId === currentUser?.id
                   ? truncateMessage(chat.lastMessage || "")
                   : truncateMessage(chat.lastTranslatedMessage || "")}
               </p>
