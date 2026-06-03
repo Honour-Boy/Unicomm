@@ -5,6 +5,7 @@ import Register from "./pages/Register";
 import Profile from "./pages/CreateProfile";
 import ForgotPassword from "./pages/ForgotPassword";
 import ChatRoom from "./pages/ChatRoom";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import PrivateRouter from "@/components/routers/PrivateRouter";
 import PublicRouter from "@/components/routers/PublicRouter";
@@ -87,6 +88,14 @@ function App() {
                 ) : (
                   <ChatRoom />
                 )}
+              </PrivateRouter>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <PrivateRouter>
+                <Settings />
               </PrivateRouter>
             }
           />
