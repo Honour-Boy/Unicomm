@@ -1,4 +1,4 @@
-import useUserStore from "../Firebase/userStore";
+﻿import useUserStore from "@/store/userStore";
 
 const Userinfo = () => {
   const { currentUser } = useUserStore();

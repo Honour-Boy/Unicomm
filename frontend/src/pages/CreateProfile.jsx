@@ -1,12 +1,12 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../components/Firebase/firebase"; // Ensure firebase.js is correctly configured
+import { db, auth } from "@/lib/firebase"; // Ensure firebase.js is correctly configured
 import { doc, setDoc, getDocs, collection } from "firebase/firestore";
 import { where, query } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
-import languages from "../components/Common/Languages";
+import languages from "@/components/common/Languages";
 import "react-toastify/dist/ReactToastify.css";
-import useUserStore from "../components/Firebase/userStore";
+import useUserStore from "@/store/userStore";
 
 const Profile = () => {
   const [section, setSection] = useState(0);

@@ -1,0 +1,81 @@
+import { format } from "timeago.js";
+import { TranslateIcon } from "@/components/ui/icons";
+
+// A single chat message: the bubble, the translation label/toggle, and timestamp.
+// The sender sees their original text; the recipient sees the translation, with a
+// toggle to reveal the original.
+const MessageBubble = ({
+  message,
+  isMine,
+  showOriginal,
+  targetLabel,
+  sourceLabel,
+  onToggleOriginal,
+}) => {
+  const hasTranslation =
+    message.translatedText && message.translatedText !== message.text;
+
+  return (
+    <div
+      className={`flex w-full ${
+        isMine ? "justify-end animate-slide-in-right" : "justify-start animate-slide-in-left"
+      }`}
+    >
+      <div
+        className={`flex flex-col max-w-[85%] sm:max-w-[70%] md:max-w-[60%] ${
+          isMine ? "items-end" : "items-start"
+        }`}
+      >
+        <div
+          className={`px-4 py-2.5 rounded-2xl text-sm md:text-[15px] leading-relaxed break-words ${
+            isMine
+              ? "bg-bubble-sent text-white shadow-bubble rounded-br-md"
+              : "bg-uni-surface text-uni-text rounded-bl-md border border-uni-border"
+          }`}
+        >
+          <p className="whitespace-pre-wrap text-left">
+            {isMine
+              ? message.text
+              : showOriginal
+              ? message.text
+              : message.translatedText || message.text}
+          </p>
+        </div>
+
+        {/* Translation label / toggle */}
+        {hasTranslation && (
+          <div
+            className={`mt-1 flex items-center gap-2 text-[11px] ${
+              isMine ? "text-indigo-300/80" : "text-uni-muted"
+            }`}
+          >
+            {isMine ? (
+              <span className="flex items-center gap-1">
+                <TranslateIcon />
+                Translated to {targetLabel}
+              </span>
+            ) : (
+              <button
+                onClick={onToggleOriginal}
+                className="flex items-center gap-1 hover:text-indigo-300 transition-colors"
+              >
+                <TranslateIcon />
+                {showOriginal ? "Show translation" : `translated from ${sourceLabel}`}
+              </button>
+            )}
+          </div>
+        )}
+
+        <span
+          className={`text-[10px] text-uni-muted mt-0.5 ${
+            isMine ? "text-right" : "text-left"
+          }`}
+        >
+          {message.createdAt?.toDate ? format(message.createdAt.toDate()) : ""}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+export default MessageBubble;

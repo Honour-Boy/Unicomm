@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { showPass, hidePass, googleLogo } from "../assets";
-import { auth, googleProvider, db } from "../components/Firebase/firebase";
+import { showPass, hidePass, googleLogo } from "@/assets";
+import { auth, googleProvider, db } from "@/lib/firebase";
 import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
 import { toast, ToastContainer } from "react-toastify";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import AuthLayout from "@/components/ui/AuthLayout";
+import Field from "@/components/ui/Field";
+import Spinner from "@/components/ui/Spinner";
 
 // Backend base URL — configurable per environment (see frontend/.env.example).
 // Falls back to local Express so dev works with no env set.
@@ -230,73 +233,5 @@ function Login() {
     </AuthLayout>
   );
 }
-
-/* --- shared auth shell --- */
-export const AuthLayout = ({ title, subtitle, children, wide = false }) => (
-  <div className="min-h-screen w-screen bg-uni-bg text-uni-text font-sans flex items-center justify-center px-4 py-10 relative overflow-hidden">
-    <div className="pointer-events-none absolute inset-0 -z-10">
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-3xl" />
-      <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] rounded-full bg-violet-600/20 blur-3xl" />
-    </div>
-
-    <div
-      className={`w-full ${
-        wide ? "max-w-lg" : "max-w-md"
-      } bg-uni-surface/80 backdrop-blur-xl border border-uni-border rounded-2xl shadow-2xl p-7 sm:p-8 animate-fade-in-up`}
-    >
-      <Link to="/" className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
-          <span className="text-white font-bold text-sm">U</span>
-        </div>
-        <span className="font-bold tracking-tight">Unicomm</span>
-      </Link>
-
-      <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>
-      {subtitle && (
-        <p className="text-sm text-uni-muted mt-1.5 mb-6">{subtitle}</p>
-      )}
-      {!subtitle && <div className="mb-6" />}
-
-      {children}
-    </div>
-  </div>
-);
-
-export const Field = ({ label, htmlFor, children }) => (
-  <div>
-    <label
-      htmlFor={htmlFor}
-      className="block text-xs font-semibold text-uni-muted mb-1.5 uppercase tracking-wider"
-    >
-      {label}
-    </label>
-    {children}
-  </div>
-);
-
-export const Spinner = () => (
-  <svg
-    className="animate-spin"
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-  >
-    <circle
-      cx="12"
-      cy="12"
-      r="9"
-      stroke="currentColor"
-      strokeWidth="3"
-      opacity="0.25"
-    />
-    <path
-      d="M21 12a9 9 0 0 1-9 9"
-      stroke="currentColor"
-      strokeWidth="3"
-      strokeLinecap="round"
-    />
-  </svg>
-);
 
 export default Login;

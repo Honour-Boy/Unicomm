@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import {
   arrayRemove,
   arrayUnion,
@@ -6,11 +6,11 @@ import {
   onSnapshot,
   updateDoc,
 } from "firebase/firestore";
-import useChatStore from "../Firebase/chatStore";
-import { db } from "../Firebase/firebase";
-import useUserStore from "../Firebase/userStore";
-import languages from "../Common/Languages";
-import { isUserOnline } from "../Firebase/usePresence";
+import useChatStore from "@/store/chatStore";
+import { db } from "@/lib/firebase";
+import useUserStore from "@/store/userStore";
+import languages from "@/components/common/Languages";
+import { isUserOnline } from "@/hooks/usePresence";
 import { format } from "timeago.js";
 
 const Detail = ({ onClose }) => {
@@ -46,7 +46,7 @@ const Detail = ({ onClose }) => {
     (user?.fullName?.charAt(1)?.toUpperCase() || "");
 
   const langLabel =
-    languages.find((l) => l.value === user?.language)?.label || "—";
+    languages.find((l) => l.value === user?.language)?.label || "â€”";
 
   const lastSeenText = (() => {
     const ls = liveUser?.lastSeen;
@@ -109,8 +109,8 @@ const Detail = ({ onClose }) => {
       <div className="flex-1 overflow-y-auto uni-scroll px-6 py-5 space-y-4">
         <InfoRow label="Email" value={user?.email} />
         <InfoRow label="Language" value={langLabel} />
-        <InfoRow label="Job Title" value={user?.jobTitle || "—"} />
-        <InfoRow label="Organization" value={user?.organization || "—"} />
+        <InfoRow label="Job Title" value={user?.jobTitle || "â€”"} />
+        <InfoRow label="Organization" value={user?.organization || "â€”"} />
         <div>
           <p className="text-xs font-semibold text-uni-muted uppercase tracking-wider mb-1">
             Bio

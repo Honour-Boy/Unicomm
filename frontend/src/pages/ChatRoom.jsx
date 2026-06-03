@@ -1,7 +1,7 @@
-import { useState } from "react";
-import { Chat, Detail, List } from "../components/Chat";
-import useChatStore from "../components/Firebase/chatStore";
-import Navbar from "../components/Common/Navbar";
+﻿import { useState } from "react";
+import { Chat, Detail, List } from "@/components/chat";
+import useChatStore from "@/store/chatStore";
+import Navbar from "@/components/common/Navbar";
 
 const EmptyChatState = () => (
   <div className="flex flex-col items-center justify-center h-full w-full text-center px-6">
