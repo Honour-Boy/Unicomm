@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import LoadingSpinner from "../Common/LoadingComponent";
+import { useAuth } from "@/context/AuthContext";
+import LoadingSpinner from "@/components/common/LoadingComponent";
 
 const PrivateRouter = ({ children }) => {
   const { allowUser } = useAuth();

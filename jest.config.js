@@ -18,6 +18,10 @@ module.exports = {
       // frontend/node_modules, but jest + testing-library live at the repo root.
       // Add frontend/node_modules so both resolve to the same React instance.
       moduleDirectories: ['node_modules', '<rootDir>/frontend/node_modules'],
+      // Mirror the Vite "@" -> src alias so imports resolve in tests too.
+      moduleNameMapper: {
+        '^@/(.*)$': '<rootDir>/frontend/src/$1',
+      },
       // Babel config is inlined here (configFile/babelrc disabled) so it is scoped
       // to tests only and never interferes with the Vite build's own React plugin.
       transform: {

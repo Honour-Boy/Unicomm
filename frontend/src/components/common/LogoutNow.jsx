@@ -1,8 +1,8 @@
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../context/AuthContext";
-import useChatStore from "../Firebase/chatStore";
-import useUserStore from "../Firebase/userStore";
-import { auth } from "../Firebase/firebase";
+﻿import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import useChatStore from "@/store/chatStore";
+import useUserStore from "@/store/userStore";
+import { auth } from "@/lib/firebase";
 
 const LogoutNow = () => {
   const { setAllowUser } = useAuth();

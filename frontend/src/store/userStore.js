@@ -1,5 +1,5 @@
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "./firebase"; // Ensure the correct path to firebase.js
+﻿import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase"; // Ensure the correct path to firebase.js
 import { create } from "zustand";
 
 const useUserStore = create((set) => ({

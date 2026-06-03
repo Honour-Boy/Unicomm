@@ -1,15 +1,17 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { showPass, hidePass } from "../assets";
-import { db, auth } from "../components/Firebase/firebase";
+import { showPass, hidePass } from "@/assets";
+import { db, auth } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ReactMarkdown from "react-markdown";
-import privacy from "../components/Common/PrivacyPolicy.md";
-import terms from "../components/Common/Terms.md";
-import { AuthLayout, Field, Spinner } from "./Login";
+import privacy from "@/components/common/PrivacyPolicy.md";
+import terms from "@/components/common/Terms.md";
+import AuthLayout from "@/components/ui/AuthLayout";
+import Field from "@/components/ui/Field";
+import Spinner from "@/components/ui/Spinner";
 
 function Register() {
   const [fullName, setFullName] = useState("");
