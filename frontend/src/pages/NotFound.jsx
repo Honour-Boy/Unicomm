@@ -8,13 +8,15 @@ function NotFound() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-gray-950 text-white text-center">
+    <div className="flex items-center justify-center h-screen bg-uni-bg text-uni-text text-center px-6">
       <div>
-        <h1 className="text-5xl font-bold mb-4">404</h1>
-        <p className="text-xl mb-8">Page Not Found</p>
+        <h1 className="font-display text-7xl font-bold mb-3 bg-brand bg-clip-text text-transparent">
+          404
+        </h1>
+        <p className="text-xl text-uni-muted mb-8">Page Not Found</p>
         <button
           onClick={handleGoHome}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+          className="bg-brand text-uni-on-accent font-bold py-2.5 px-6 rounded-xl shadow-bubble hover:shadow-glow transition-all"
         >
           Go Home
         </button>

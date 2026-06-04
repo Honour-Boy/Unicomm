@@ -40,7 +40,7 @@ const ForgotPassword = () => {
     <AuthLayout title={t("forgot.title")} subtitle={t("forgot.subtitle")}>
       {sent ? (
         <div className="flex flex-col items-center text-center py-2">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-indigo-300 mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-brand-soft border border-uni-lime/20 flex items-center justify-center text-uni-lime mb-4">
             <svg
               width="24"
               height="24"
@@ -91,7 +91,7 @@ const ForgotPassword = () => {
             {t("forgot.rememberedIt")}{" "}
             <Link
               to="/login"
-              className="text-indigo-400 hover:text-indigo-300 font-medium"
+              className="text-uni-cyan hover:text-uni-lime font-medium"
             >
               {t("forgot.backToSignIn")}
             </Link>

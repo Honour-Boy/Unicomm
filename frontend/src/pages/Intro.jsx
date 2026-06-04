@@ -7,22 +7,26 @@ function Intro() {
   const { t } = useTranslation();
 
   return (
-    <div className="w-screen min-h-screen max-h-screen overflow-y-auto bg-uni-bg text-uni-text font-sans">
-      {/* Ambient gradient orbs */}
+    <div className="w-screen min-h-screen max-h-screen overflow-y-auto bg-uni-bg text-uni-text font-sans uni-scroll">
+      {/* Ambient electric orbs */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden -z-10">
-        <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-3xl" />
-        <div className="absolute top-1/3 -right-40 w-[500px] h-[500px] rounded-full bg-violet-600/20 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 w-[400px] h-[400px] rounded-full bg-indigo-500/10 blur-3xl" />
+        <div className="absolute -top-40 -left-40 w-[520px] h-[520px] rounded-full bg-uni-lime/15 blur-3xl animate-float" />
+        <div className="absolute top-1/3 -right-40 w-[520px] h-[520px] rounded-full bg-uni-cyan/15 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 w-[420px] h-[420px] rounded-full bg-uni-magenta/10 blur-3xl" />
       </div>
 
       {/* Navbar */}
       <header className="sticky top-0 z-20 backdrop-blur-md bg-uni-bg/80 border-b border-uni-border">
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-bubble">
-              <span className="text-white font-bold text-lg">U</span>
+            <div className="w-9 h-9 rounded-xl bg-brand flex items-center justify-center shadow-bubble">
+              <span className="text-uni-on-accent font-display font-bold text-lg">
+                U
+              </span>
             </div>
-            <span className="text-lg font-bold tracking-tight">Unicomm</span>
+            <span className="text-lg font-display font-bold tracking-tight">
+              Unicomm
+            </span>
           </div>
 
           <nav className="hidden md:flex items-center gap-8 text-sm text-uni-muted">
@@ -50,7 +54,7 @@ function Intro() {
             </button>
             <button
               onClick={() => navigate("/register")}
-              className="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-bubble-sent shadow-bubble hover:opacity-90 transition-opacity"
+              className="px-4 py-2 text-sm font-bold text-uni-on-accent rounded-lg bg-brand shadow-bubble hover:shadow-glow transition-all"
             >
               {t("nav.getStarted")}
             </button>
@@ -61,16 +65,16 @@ function Intro() {
       {/* Hero */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-24 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-uni-surface border border-uni-border text-xs font-medium text-uni-muted mb-6">
-          <span className="w-1.5 h-1.5 rounded-full bg-uni-online animate-pulse-dot" />
+          <span className="w-1.5 h-1.5 rounded-full bg-uni-lime animate-pulse-dot" />
           {t("intro.badge")}
         </div>
 
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] max-w-4xl mx-auto">
+        <h1 className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] max-w-4xl mx-auto">
           <Trans
             i18nKey="intro.heroTitle"
             components={{
               grad: (
-                <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent" />
+                <span className="bg-brand bg-clip-text text-transparent" />
               ),
             }}
           />
@@ -83,13 +87,13 @@ function Intro() {
         <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
           <button
             onClick={() => navigate("/register")}
-            className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-bubble-sent shadow-bubble hover:opacity-90 transition-opacity"
+            className="w-full sm:w-auto px-6 py-3 text-sm font-bold text-uni-on-accent rounded-xl bg-brand shadow-bubble hover:shadow-glow transition-all"
           >
             {t("intro.startFree")}
           </button>
           <button
             onClick={() => navigate("/login")}
-            className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-uni-surface border border-uni-border hover:bg-uni-surface2 transition-colors"
+            className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-uni-surface border border-uni-border hover:border-uni-lime/40 hover:bg-uni-surface2 transition-colors"
           >
             {t("intro.haveAccount")}
           </button>
@@ -97,11 +101,11 @@ function Intro() {
 
         {/* Chat preview mockup */}
         <div className="mt-16 md:mt-20 max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-uni-border bg-uni-surface/60 backdrop-blur-sm shadow-2xl overflow-hidden">
+          <div className="rounded-3xl border border-uni-border bg-uni-surface/60 backdrop-blur-sm shadow-2xl overflow-hidden">
             <div className="flex items-center gap-1.5 px-4 py-3 border-b border-uni-border">
-              <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-              <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
-              <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+              <span className="w-2.5 h-2.5 rounded-full bg-uni-magenta/70" />
+              <span className="w-2.5 h-2.5 rounded-full bg-uni-lime/70" />
+              <span className="w-2.5 h-2.5 rounded-full bg-uni-cyan/70" />
               <span className="ml-3 text-xs text-uni-muted">Mei · EN → JA</span>
             </div>
             <div className="p-6 space-y-3 text-left">
@@ -117,10 +121,10 @@ function Intro() {
               </div>
               <div className="flex justify-end">
                 <div className="max-w-[70%] flex flex-col items-end">
-                  <div className="px-4 py-2.5 rounded-2xl rounded-br-md bg-bubble-sent text-white text-sm shadow-bubble">
+                  <div className="px-4 py-2.5 rounded-2xl rounded-br-md bg-brand text-uni-on-accent font-medium text-sm shadow-bubble">
                     Of course — let me share the latest mockups.
                   </div>
-                  <p className="text-[11px] text-indigo-300/80 mt-1">
+                  <p className="text-[11px] text-uni-muted mt-1">
                     {t("intro.previewTranslatedTo")}
                   </p>
                 </div>
@@ -243,7 +247,7 @@ function Intro() {
 
       {/* CTA */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="rounded-3xl border border-uni-border bg-gradient-to-br from-indigo-500/10 via-uni-surface to-violet-500/10 p-10 md:p-14 text-center">
+        <div className="rounded-3xl border border-uni-border bg-brand-soft p-10 md:p-14 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
             {t("intro.ctaTitle")}
           </h2>
@@ -253,13 +257,13 @@ function Intro() {
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => navigate("/register")}
-              className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-bubble-sent shadow-bubble hover:opacity-90 transition-opacity"
+              className="w-full sm:w-auto px-6 py-3 text-sm font-bold text-uni-on-accent rounded-xl bg-brand shadow-bubble hover:shadow-glow transition-all"
             >
               {t("intro.createAccount")}
             </button>
             <button
               onClick={() => navigate("/login")}
-              className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-uni-surface border border-uni-border hover:bg-uni-surface2 transition-colors"
+              className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-uni-surface border border-uni-border hover:border-uni-lime/40 hover:bg-uni-surface2 transition-colors"
             >
               {t("intro.startChatting")}
             </button>
@@ -271,8 +275,10 @@ function Intro() {
       <footer className="border-t border-uni-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-uni-muted">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
-              <span className="text-white font-bold text-xs">U</span>
+            <div className="w-6 h-6 rounded-md bg-brand flex items-center justify-center">
+              <span className="text-uni-on-accent font-display font-bold text-xs">
+                U
+              </span>
             </div>
             <span>© {new Date().getFullYear()} Unicomm</span>
           </div>
@@ -294,8 +300,8 @@ function Intro() {
 }
 
 const FeatureCard = ({ icon, title, description }) => (
-  <div className="group p-6 rounded-2xl border border-uni-border bg-uni-surface/60 hover:bg-uni-surface hover:border-indigo-500/40 transition-all">
-    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-indigo-300 mb-4 group-hover:scale-105 transition-transform">
+  <div className="group p-6 rounded-2xl border border-uni-border bg-uni-surface/60 hover:bg-uni-surface hover:border-uni-lime/40 transition-all">
+    <div className="w-11 h-11 rounded-xl bg-brand-soft border border-uni-lime/20 flex items-center justify-center text-uni-lime mb-4 group-hover:scale-105 transition-transform">
       {icon}
     </div>
     <h3 className="text-lg font-semibold text-white">{title}</h3>
@@ -308,13 +314,13 @@ const FeatureCard = ({ icon, title, description }) => (
 const StepCard = ({ n, title, body }) => {
   const { t } = useTranslation();
   return (
-  <div className="p-6 rounded-2xl border border-uni-border bg-uni-surface/60">
-    <span className="text-xs font-bold tracking-widest text-indigo-400">
-      {t("intro.step")} {n}
-    </span>
-    <h3 className="mt-2 text-lg font-semibold text-white">{title}</h3>
-    <p className="mt-1.5 text-sm text-uni-muted leading-relaxed">{body}</p>
-  </div>
+    <div className="p-6 rounded-2xl border border-uni-border bg-uni-surface/60 hover:border-uni-lime/30 transition-colors">
+      <span className="font-display text-xs font-bold tracking-widest text-uni-lime">
+        {t("intro.step")} {n}
+      </span>
+      <h3 className="mt-2 text-lg font-semibold text-white">{title}</h3>
+      <p className="mt-1.5 text-sm text-uni-muted leading-relaxed">{body}</p>
+    </div>
   );
 };
 

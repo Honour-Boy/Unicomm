@@ -20,7 +20,7 @@ const LanguageSwitcher = ({ className = "" }) => {
       value={value}
       onChange={(e) => setUiLanguage(e.target.value)}
       aria-label={i18n.t("language.select")}
-      className={`bg-uni-surface border border-uni-border rounded-lg text-sm text-uni-text px-2.5 py-1.5 outline-none cursor-pointer hover:border-indigo-500/60 focus:border-indigo-500/60 transition-colors ${className}`}
+      className={`bg-uni-surface border border-uni-border rounded-lg text-sm text-uni-text px-2.5 py-1.5 outline-none cursor-pointer hover:border-uni-lime/50 focus:border-uni-lime/60 transition-colors ${className}`}
     >
       {UI_LANGUAGES.map((code) => (
         <option key={code} value={code} className="bg-uni-surface text-uni-text">

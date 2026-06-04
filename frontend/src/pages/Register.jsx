@@ -199,7 +199,7 @@ function Register() {
           <label className="flex items-start gap-2 text-sm text-uni-muted select-none">
             <input
               type="checkbox"
-              className="accent-indigo-500 mt-0.5 w-4 h-4 rounded"
+              className="accent-uni-lime mt-0.5 w-4 h-4 rounded"
               required
             />
             <span>
@@ -210,14 +210,14 @@ function Register() {
                     <a
                       href="#"
                       onClick={openTerms}
-                      className="text-indigo-400 hover:text-indigo-300"
+                      className="text-uni-cyan hover:text-uni-lime"
                     />
                   ),
                   privacy: (
                     <a
                       href="#"
                       onClick={openPrivacy}
-                      className="text-indigo-400 hover:text-indigo-300"
+                      className="text-uni-cyan hover:text-uni-lime"
                     />
                   ),
                 }}
@@ -237,7 +237,7 @@ function Register() {
             {t("register.haveAccount")}{" "}
             <Link
               to="/login"
-              className="text-indigo-400 hover:text-indigo-300 font-medium"
+              className="text-uni-cyan hover:text-uni-lime font-medium"
             >
               {t("register.signIn")}
             </Link>
