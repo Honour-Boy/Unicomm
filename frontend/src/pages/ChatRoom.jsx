@@ -8,13 +8,13 @@ const EmptyChatState = () => {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center h-full w-full text-center px-6">
-      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center mb-5">
+      <div className="w-20 h-20 rounded-3xl bg-brand-soft border border-uni-lime/20 flex items-center justify-center mb-5">
         <svg
           width="32"
           height="32"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#818cf8"
+          stroke="#C6FF3D"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"

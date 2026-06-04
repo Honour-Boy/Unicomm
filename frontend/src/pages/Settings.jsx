@@ -73,7 +73,7 @@ const fileToAvatarDataUrl = (file) =>
   });
 
 const inputCls =
-  "w-full bg-uni-surface border border-uni-border rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-500/60 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all";
+  "w-full bg-uni-surface border border-uni-border rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-uni-lime/60 focus:shadow-[0_0_0_3px_rgba(198,255,61,0.15)] transition-all";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -200,7 +200,7 @@ const Settings = () => {
               className="!w-16 !h-16 text-xl"
             />
             <label
-              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-uni-surface2 border border-uni-border flex items-center justify-center cursor-pointer hover:border-indigo-500/60 transition-colors"
+              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-uni-surface2 border border-uni-border flex items-center justify-center cursor-pointer hover:border-uni-lime/60 transition-colors"
               title={t("settings.changePhoto")}
             >
               <input
@@ -305,7 +305,7 @@ const Settings = () => {
           <button
             type="submit"
             disabled={saving}
-            className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-bubble-sent text-white shadow-bubble hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+            className="px-5 py-2.5 rounded-xl text-sm font-bold bg-brand text-uni-on-accent shadow-bubble hover:shadow-glow disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             {saving ? t("settings.saving") : t("settings.save")}
           </button>

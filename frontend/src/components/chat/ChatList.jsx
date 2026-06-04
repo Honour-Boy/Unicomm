@@ -205,7 +205,7 @@ const ChatList = () => {
     <div className="flex-1 overflow-y-auto items-start flex flex-col w-full px-3 py-3 gap-1 uni-scroll">
       <ToastContainer position="top-center" theme="dark" />
       <div className="flex items-center gap-2 w-full">
-        <div className="flex items-center gap-2 flex-1 bg-uni-surface border border-uni-border rounded-full px-3 py-2 focus-within:border-indigo-500/60 transition-colors">
+        <div className="flex items-center gap-2 flex-1 bg-uni-surface border border-uni-border rounded-full px-3 py-2 focus-within:border-uni-lime/50 transition-colors">
           <img
             src={searchIcon}
             alt="search"
@@ -254,7 +254,7 @@ const ChatList = () => {
                 <button
                   key={suggestion.id}
                   onClick={() => handleAdd(suggestion)}
-                  className="flex items-center gap-2 bg-uni-surface border border-uni-border hover:border-indigo-500/60 px-3 py-2 rounded-full transition-colors"
+                  className="flex items-center gap-2 bg-uni-surface border border-uni-border hover:border-uni-lime/40 px-3 py-2 rounded-full transition-colors"
                 >
                   <span className="text-white text-xs">
                     {suggestion.username}

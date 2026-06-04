@@ -10,8 +10,8 @@ const Navbar = () => {
     <nav className="hidden md:flex w-16 lg:w-20 h-screen flex-col items-center justify-between bg-uni-bg border-r border-uni-border py-5">
       <div className="flex flex-col items-center gap-6">
         {/* Brand mark */}
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center shadow-bubble">
-          <span className="text-white font-bold text-lg">U</span>
+        <div className="w-10 h-10 rounded-xl bg-brand flex items-center justify-center shadow-bubble">
+          <span className="text-uni-on-accent font-display font-bold text-lg">U</span>
         </div>
 
         <NavIcon label={t("navbar.chats")} active onClick={() => navigate("/chat")}>
@@ -64,7 +64,7 @@ const NavIcon = ({ children, label, active, onClick }) => {
         onClick={onClick}
         className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
           active
-            ? "bg-indigo-500/15 text-indigo-300"
+            ? "bg-brand-soft text-uni-lime"
             : "text-uni-muted hover:text-white hover:bg-white/5"
         }`}
       >

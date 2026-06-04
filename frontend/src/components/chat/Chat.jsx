@@ -192,7 +192,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
           aria-label="Open profile"
         >
           <span className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold tracking-wide text-uni-muted uppercase">
-            <span className="w-2 h-2 rounded-full bg-gradient-to-br from-indigo-500 to-violet-500" />
+            <span className="w-2 h-2 rounded-full bg-brand" />
             Unicomm
           </span>
           <span className="hidden sm:block w-px h-5 bg-uni-border" />
@@ -243,7 +243,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
       <div className="flex-1 overflow-y-auto uni-scroll px-3 md:px-8 py-4 md:py-6 space-y-3">
         {messages.length === 0 && (
           <div className="h-full min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 flex items-center justify-center mb-4 text-3xl">
+            <div className="w-16 h-16 rounded-2xl bg-brand-soft border border-uni-lime/20 flex items-center justify-center mb-4 text-3xl">
               🌍
             </div>
             <p className="text-lg font-semibold text-white">
@@ -310,10 +310,10 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
           <div className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-full bg-uni-surface border border-uni-border text-[11px] font-semibold text-uni-muted">
             <span className="text-white">{sourceCode}</span>
             <Arrow />
-            <span className="text-indigo-400">{targetCode}</span>
+            <span className="text-uni-cyan">{targetCode}</span>
           </div>
 
-          <div className="flex-1 flex items-center gap-2 bg-uni-surface border border-uni-border rounded-full pl-4 pr-2 py-1.5 focus-within:border-indigo-500/60 focus-within:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all">
+          <div className="flex-1 flex items-center gap-2 bg-uni-surface border border-uni-border rounded-full pl-4 pr-2 py-1.5 focus-within:border-uni-lime/50 focus-within:shadow-[0_0_0_3px_rgba(198,255,61,0.15)] transition-all">
             <input
               type="text"
               placeholder={
@@ -354,7 +354,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
             <button
               onClick={handleSend}
               disabled={disabled || !text.trim()}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-bubble-sent text-white shadow-bubble hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+              className="flex items-center justify-center w-9 h-9 rounded-full bg-brand text-uni-on-accent shadow-bubble hover:shadow-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               aria-label={t("chat.send")}
             >
               <SendIcon />
@@ -367,7 +367,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-uni-surface border border-uni-border text-[10px] font-semibold text-uni-muted">
             <span className="text-white">{sourceCode}</span>
             <Arrow />
-            <span className="text-indigo-400">{targetCode}</span>
+            <span className="text-uni-cyan">{targetCode}</span>
           </div>
         </div>
       </div>

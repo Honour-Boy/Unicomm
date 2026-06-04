@@ -5,8 +5,8 @@ import { Link } from "react-router-dom";
 const AuthLayout = ({ title, subtitle, children, wide = false }) => (
   <div className="min-h-screen w-screen bg-uni-bg text-uni-text font-sans flex items-center justify-center px-4 py-10 relative overflow-hidden">
     <div className="pointer-events-none absolute inset-0 -z-10">
-      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-indigo-600/20 blur-3xl" />
-      <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] rounded-full bg-violet-600/20 blur-3xl" />
+      <div className="absolute -top-40 -left-40 w-[500px] h-[500px] rounded-full bg-uni-lime/15 blur-3xl" />
+      <div className="absolute bottom-0 -right-40 w-[500px] h-[500px] rounded-full bg-uni-cyan/15 blur-3xl" />
     </div>
 
     <div
@@ -15,10 +15,10 @@ const AuthLayout = ({ title, subtitle, children, wide = false }) => (
       } bg-uni-surface/80 backdrop-blur-xl border border-uni-border rounded-2xl shadow-2xl p-7 sm:p-8 animate-fade-in-up`}
     >
       <Link to="/" className="flex items-center gap-2 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 flex items-center justify-center">
-          <span className="text-white font-bold text-sm">U</span>
+        <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
+          <span className="text-uni-on-accent font-display font-bold text-sm">U</span>
         </div>
-        <span className="font-bold tracking-tight">Unicomm</span>
+        <span className="font-display font-bold tracking-tight">Unicomm</span>
       </Link>
 
       <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{title}</h1>

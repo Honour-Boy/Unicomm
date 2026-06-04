@@ -31,7 +31,7 @@ const MessageBubble = ({
         <div
           className={`px-4 py-2.5 rounded-2xl text-sm md:text-[15px] leading-relaxed break-words ${
             isMine
-              ? "bg-bubble-sent text-white shadow-bubble rounded-br-md"
+              ? "bg-bubble-sent text-uni-on-accent font-medium shadow-bubble rounded-br-md"
               : "bg-uni-surface text-uni-text rounded-bl-md border border-uni-border"
           }`}
         >
@@ -51,7 +51,7 @@ const MessageBubble = ({
         {hasTranslation && (
           <div
             className={`mt-1 flex items-center gap-2 text-[11px] ${
-              isMine ? "text-indigo-300/80" : "text-uni-muted"
+              isMine ? "text-uni-cyan/90" : "text-uni-muted"
             }`}
           >
             {isMine ? (
@@ -62,7 +62,7 @@ const MessageBubble = ({
             ) : (
               <button
                 onClick={onToggleOriginal}
-                className="flex items-center gap-1 hover:text-indigo-300 transition-colors"
+                className="flex items-center gap-1 hover:text-uni-lime transition-colors"
               >
                 <TranslateIcon />
                 {showOriginal
