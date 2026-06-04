@@ -24,6 +24,7 @@ import LoadingSpinner from "@/components/common/LoadingComponent";
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
+  const [loadingChats, setLoadingChats] = useState(true);
   const [input, setInput] = useState("");
   const [toastify, setToast] = useState();
   const { currentUser } = useUserStore();
@@ -47,16 +48,27 @@ const ChatList = () => {
       orderBy("updatedAt", "desc")
     );
 
-    const unSub = onSnapshot(itemsQuery, async (snap) => {
-      const items = snap.docs.map((d) => d.data());
-      const chatData = await Promise.all(
-        items.map(async (item) => {
-          const userSnap = await getDoc(doc(db, "users", item.receiverId));
-          return { ...item, user: { ...userSnap.data(), id: item.receiverId } };
-        })
-      );
-      setChats(chatData);
-    });
+    const unSub = onSnapshot(
+      itemsQuery,
+      async (snap) => {
+        const items = snap.docs.map((d) => d.data());
+        const chatData = await Promise.all(
+          items.map(async (item) => {
+            const userSnap = await getDoc(doc(db, "users", item.receiverId));
+            return {
+              ...item,
+              user: { ...userSnap.data(), id: item.receiverId },
+            };
+          })
+        );
+        setChats(chatData);
+        setLoadingChats(false);
+      },
+      (err) => {
+        console.log(err);
+        setLoadingChats(false);
+      }
+    );
 
     return () => unSub();
   }, [currentUser?.id]);
@@ -203,6 +215,7 @@ const ChatList = () => {
             className="bg-transparent border-none outline-none text-sm text-white placeholder:text-uni-muted w-full flex-1"
             onChange={(e) => {
               setInput(e.target.value);
+              if (error) setError("");
             }}
             onKeyDown={handleSearch}
           />
@@ -227,37 +240,61 @@ const ChatList = () => {
           />
         </div>
       )}
-      <div className="mt-4 w-full flex flex-col">
-        <h3 className="text-xs font-semibold text-uni-muted text-left uppercase tracking-wider px-1">
-          Suggestions
-        </h3>
-        <div className="w-full mt-2 overflow-x-auto scrollbar-hide">
-          <div className="w-max flex flex-row gap-2 pb-1">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.id}
-                onClick={() => handleAdd(suggestion)}
-                className="flex items-center gap-2 bg-uni-surface border border-uni-border hover:border-indigo-500/60 px-3 py-2 rounded-full transition-colors"
-              >
-                <span className="text-white text-xs">{suggestion.username}</span>
-                <img
-                  src={plusIcon}
-                  alt="add user"
-                  className="w-4 h-4 cursor-pointer opacity-80"
-                />
-              </button>
-            ))}
+      {suggestions.length > 0 && (
+        <div className="mt-4 w-full flex flex-col">
+          <h3 className="text-xs font-semibold text-uni-muted text-left uppercase tracking-wider px-1">
+            Suggestions
+          </h3>
+          <div className="w-full mt-2 overflow-x-auto scrollbar-hide">
+            <div className="w-max flex flex-row gap-2 pb-1">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  onClick={() => handleAdd(suggestion)}
+                  className="flex items-center gap-2 bg-uni-surface border border-uni-border hover:border-indigo-500/60 px-3 py-2 rounded-full transition-colors"
+                >
+                  <span className="text-white text-xs">
+                    {suggestion.username}
+                  </span>
+                  <img
+                    src={plusIcon}
+                    alt="add user"
+                    className="w-4 h-4 cursor-pointer opacity-80"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+      )}
       <h3 className="mt-4 text-xs font-semibold text-uni-muted uppercase tracking-wider px-1 self-start">
         Chats
       </h3>
-      {chats.length === 0 && (
+      {loadingChats ? (
+        <div className="w-full flex flex-col gap-0.5 mt-1">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex w-full items-center gap-3 p-2.5 rounded-xl"
+            >
+              <div className="w-10 h-10 rounded-full bg-uni-surface2 animate-pulse shrink-0" />
+              <div className="flex flex-col gap-2 flex-1 min-w-0">
+                <div className="h-3 w-28 bg-uni-surface2 animate-pulse rounded" />
+                <div className="h-2.5 w-40 bg-uni-surface2 animate-pulse rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : chats.length === 0 ? (
         <p className="text-uni-muted text-sm text-center w-full py-6">
-          You have no chats yet
+          No conversations yet — search a username above or pick a suggestion to
+          start chatting.
         </p>
-      )}
+      ) : filteredChats.length === 0 ? (
+        <p className="text-uni-muted text-sm text-center w-full py-6">
+          No conversations match your search.
+        </p>
+      ) : null}
       <div className="w-full flex flex-col gap-0.5 mt-1">
         {filteredChats.map((chat) => (
           <div
