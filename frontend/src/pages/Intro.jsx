@@ -1,7 +1,10 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
+import LanguageSwitcher from "@/components/common/LanguageSwitcher";
 
 function Intro() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   return (
     <div className="w-screen min-h-screen max-h-screen overflow-y-auto bg-uni-bg text-uni-text font-sans">
@@ -24,31 +27,32 @@ function Intro() {
 
           <nav className="hidden md:flex items-center gap-8 text-sm text-uni-muted">
             <a href="#features" className="hover:text-white transition-colors">
-              Features
+              {t("nav.features")}
             </a>
             <a
               href="#how-it-works"
               className="hover:text-white transition-colors"
             >
-              How it works
+              {t("nav.howItWorks")}
             </a>
             <a href="#pricing" className="hover:text-white transition-colors">
-              Pricing
+              {t("nav.pricing")}
             </a>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <LanguageSwitcher />
             <button
               onClick={() => navigate("/login")}
               className="px-4 py-2 text-sm font-medium text-uni-text hover:text-white transition-colors"
             >
-              Log in
+              {t("nav.login")}
             </button>
             <button
               onClick={() => navigate("/register")}
               className="px-4 py-2 text-sm font-semibold text-white rounded-lg bg-bubble-sent shadow-bubble hover:opacity-90 transition-opacity"
             >
-              Get started
+              {t("nav.getStarted")}
             </button>
           </div>
         </div>
@@ -58,20 +62,22 @@ function Intro() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 md:pt-24 pb-20 text-center">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-uni-surface border border-uni-border text-xs font-medium text-uni-muted mb-6">
           <span className="w-1.5 h-1.5 rounded-full bg-uni-online animate-pulse-dot" />
-          Real-time translation, now in beta
+          {t("intro.badge")}
         </div>
 
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight leading-[1.05] max-w-4xl mx-auto">
-          Chat across{" "}
-          <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-            every language
-          </span>
-          , instantly.
+          <Trans
+            i18nKey="intro.heroTitle"
+            components={{
+              grad: (
+                <span className="bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent" />
+              ),
+            }}
+          />
         </h1>
 
         <p className="mt-6 text-lg sm:text-xl text-uni-muted max-w-2xl mx-auto leading-relaxed">
-          Unicomm translates messages as you send them. Your team writes in
-          their native language — everyone else reads in theirs.
+          {t("intro.heroSubtitle")}
         </p>
 
         <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -79,13 +85,13 @@ function Intro() {
             onClick={() => navigate("/register")}
             className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-bubble-sent shadow-bubble hover:opacity-90 transition-opacity"
           >
-            Start chatting free
+            {t("intro.startFree")}
           </button>
           <button
             onClick={() => navigate("/login")}
             className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-uni-surface border border-uni-border hover:bg-uni-surface2 transition-colors"
           >
-            I have an account
+            {t("intro.haveAccount")}
           </button>
         </div>
 
@@ -96,9 +102,7 @@ function Intro() {
               <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
               <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
               <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-              <span className="ml-3 text-xs text-uni-muted">
-                Mei · EN → JA
-              </span>
+              <span className="ml-3 text-xs text-uni-muted">Mei · EN → JA</span>
             </div>
             <div className="p-6 space-y-3 text-left">
               <div className="flex justify-start">
@@ -107,7 +111,7 @@ function Intro() {
                     こんにちは！プロジェクトの件で話せますか？
                   </div>
                   <p className="text-[11px] text-uni-muted mt-1">
-                    translated from Japanese
+                    {t("intro.previewTranslatedFrom")}
                   </p>
                 </div>
               </div>
@@ -117,7 +121,7 @@ function Intro() {
                     Of course — let me share the latest mockups.
                   </div>
                   <p className="text-[11px] text-indigo-300/80 mt-1">
-                    Translated to Japanese
+                    {t("intro.previewTranslatedTo")}
                   </p>
                 </div>
               </div>
@@ -137,18 +141,17 @@ function Intro() {
       <section id="features" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Built for teams that speak every language
+            {t("intro.featuresTitle")}
           </h2>
           <p className="mt-3 text-uni-muted max-w-xl mx-auto">
-            Everything you need for clear, professional, multilingual
-            conversations.
+            {t("intro.featuresSubtitle")}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <FeatureCard
-            title="Instant translation"
-            description="Messages are translated the moment you hit send — no delays, no context-switching."
+            title={t("intro.feature1Title")}
+            description={t("intro.feature1Desc")}
             icon={
               <svg
                 width="22"
@@ -170,8 +173,8 @@ function Intro() {
             }
           />
           <FeatureCard
-            title="Real-time presence"
-            description="See who's online, who's typing, and when your team was last active."
+            title={t("intro.feature2Title")}
+            description={t("intro.feature2Desc")}
             icon={
               <svg
                 width="22"
@@ -189,8 +192,8 @@ function Intro() {
             }
           />
           <FeatureCard
-            title="Preserved meaning"
-            description="View the original or the translation with one tap — context never gets lost."
+            title={t("intro.feature3Title")}
+            description={t("intro.feature3Desc")}
             icon={
               <svg
                 width="22"
@@ -213,27 +216,27 @@ function Intro() {
       <section id="how-it-works" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-14">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            How Unicomm works
+            {t("intro.howTitle")}
           </h2>
           <p className="mt-3 text-uni-muted max-w-xl mx-auto">
-            Three steps to seamless multilingual conversations.
+            {t("intro.howSubtitle")}
           </p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <StepCard
             n="01"
-            title="Set your language"
-            body="Choose your preferred language during onboarding. Every contact sets their own."
+            title={t("intro.step1Title")}
+            body={t("intro.step1Body")}
           />
           <StepCard
             n="02"
-            title="Send like normal"
-            body="Type naturally in your own language. We'll handle the translation in-flight."
+            title={t("intro.step2Title")}
+            body={t("intro.step2Body")}
           />
           <StepCard
             n="03"
-            title="Read in yours"
-            body="Recipients see messages in their preferred language, with the original one tap away."
+            title={t("intro.step3Title")}
+            body={t("intro.step3Body")}
           />
         </div>
       </section>
@@ -242,23 +245,23 @@ function Intro() {
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="rounded-3xl border border-uni-border bg-gradient-to-br from-indigo-500/10 via-uni-surface to-violet-500/10 p-10 md:p-14 text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight">
-            Ready to remove the language barrier?
+            {t("intro.ctaTitle")}
           </h2>
           <p className="mt-3 text-uni-muted max-w-lg mx-auto">
-            Join Unicomm and start conversations that cross every border.
+            {t("intro.ctaSubtitle")}
           </p>
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               onClick={() => navigate("/register")}
               className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-bubble-sent shadow-bubble hover:opacity-90 transition-opacity"
             >
-              Create account
+              {t("intro.createAccount")}
             </button>
             <button
               onClick={() => navigate("/login")}
               className="w-full sm:w-auto px-6 py-3 text-sm font-semibold text-white rounded-xl bg-uni-surface border border-uni-border hover:bg-uni-surface2 transition-colors"
             >
-              Start chatting
+              {t("intro.startChatting")}
             </button>
           </div>
         </div>
@@ -275,13 +278,13 @@ function Intro() {
           </div>
           <div className="flex items-center gap-6">
             <a href="#" className="hover:text-white transition-colors">
-              Privacy
+              {t("intro.footerPrivacy")}
             </a>
             <a href="#" className="hover:text-white transition-colors">
-              Terms
+              {t("intro.footerTerms")}
             </a>
             <a href="#" className="hover:text-white transition-colors">
-              Contact
+              {t("intro.footerContact")}
             </a>
           </div>
         </div>
@@ -302,14 +305,17 @@ const FeatureCard = ({ icon, title, description }) => (
   </div>
 );
 
-const StepCard = ({ n, title, body }) => (
+const StepCard = ({ n, title, body }) => {
+  const { t } = useTranslation();
+  return (
   <div className="p-6 rounded-2xl border border-uni-border bg-uni-surface/60">
     <span className="text-xs font-bold tracking-widest text-indigo-400">
-      STEP {n}
+      {t("intro.step")} {n}
     </span>
     <h3 className="mt-2 text-lg font-semibold text-white">{title}</h3>
     <p className="mt-1.5 text-sm text-uni-muted leading-relaxed">{body}</p>
   </div>
-);
+  );
+};
 
 export default Intro;
