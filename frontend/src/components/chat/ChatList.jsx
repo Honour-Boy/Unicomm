@@ -21,6 +21,7 @@ import { format } from "timeago.js";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoadingSpinner from "@/components/common/LoadingComponent";
+import Avatar from "@/components/ui/Avatar";
 
 const ChatList = () => {
   const [chats, setChats] = useState([]);
@@ -302,11 +303,7 @@ const ChatList = () => {
             className="flex w-full items-center gap-3 p-2.5 cursor-pointer rounded-xl hover:bg-uni-surface transition-colors"
             onClick={() => handleSelect(chat.chatId, chat.user)}
           >
-            <div className="user-avatar-small text-sm">
-              {(chat.user?.fullName?.split(" ")[0]?.charAt(0) || "") +
-                (chat.user?.fullName?.split(" ")[0]?.charAt(1)?.toUpperCase() ||
-                  "")}
-            </div>
+            <Avatar user={chat.user} small className="text-sm" />
             <div className="flex flex-col gap-0.5 flex-1 min-w-0">
               <div className="flex justify-between items-center gap-2">
                 <span className="font-medium text-left text-white text-sm truncate">
