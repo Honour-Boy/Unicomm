@@ -23,3 +23,13 @@ test("falls back to English for a language without a catalog", async () => {
   await i18n.changeLanguage("de");
   expect(i18n.t("login.signIn")).toBe("Sign in");
 });
+
+test("localizes the chat/settings surfaces (PR2 namespaces)", async () => {
+  await i18n.changeLanguage("fr");
+  expect(i18n.t("settings.editProfile")).toBe("Modifier le profil");
+  expect(i18n.t("chat.send")).toBe("Envoyer");
+  // Interpolation still works in a translated string.
+  expect(i18n.t("chat.translatedTo", { lang: "anglais" })).toBe(
+    "Traduit en anglais"
+  );
+});

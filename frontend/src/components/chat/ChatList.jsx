@@ -1,4 +1,5 @@
 ﻿import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import useUserStore from "@/store/userStore";
 import {
   doc,
@@ -35,6 +36,7 @@ const ChatList = () => {
   const [isLoading, setIsLoading] = useState(null);
   const [isAdding, setIsAdding] = useState(false);
   const [suggestions, setSuggestions] = useState([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!currentUser?.id) return;
@@ -130,7 +132,7 @@ const ChatList = () => {
       } else {
         setUser(null);
         setIsLoading(null);
-        setError("The username above was not found.");
+        setError(t("chatList.userNotFound"));
       }
     } catch (err) {
       console.log(err);
@@ -142,11 +144,11 @@ const ChatList = () => {
 
     // Check if the user is trying to add themselves
     if (userToAdd.id === currentUser.id) {
-      setToast("You cannot add yourself to the chat list.");
+      setToast(t("chatList.cannotAddSelf"));
       return;
     }
     setIsAdding(true);
-    setToast("Adding user to chat list...");
+    setToast(t("chatList.addingUser"));
     try {
       // Prevent duplicates: is there already an index entry for this partner?
       // (The index is owner-readable; this is a read, not a write.)
@@ -158,7 +160,7 @@ const ChatList = () => {
         )
       );
       if (!existing.empty) {
-        setToast("User is already in your chat list.");
+        setToast(t("chatList.alreadyInList"));
         setIsAdding(false);
         return;
       }
@@ -174,7 +176,7 @@ const ChatList = () => {
       });
       await syncUserchats(chatRef.id);
 
-      setToast("User added successfully!");
+      setToast(t("chatList.userAdded"));
       setUser(null); // Reset the user state after adding
     } catch (err) {
       console.log(err); // Log any errors
@@ -212,7 +214,7 @@ const ChatList = () => {
           />
           <input
             type="text"
-            placeholder="Search conversations"
+            placeholder={t("chatList.searchPlaceholder")}
             className="bg-transparent border-none outline-none text-sm text-white placeholder:text-uni-muted w-full flex-1"
             onChange={(e) => {
               setInput(e.target.value);
@@ -244,7 +246,7 @@ const ChatList = () => {
       {suggestions.length > 0 && (
         <div className="mt-4 w-full flex flex-col">
           <h3 className="text-xs font-semibold text-uni-muted text-left uppercase tracking-wider px-1">
-            Suggestions
+            {t("chatList.suggestions")}
           </h3>
           <div className="w-full mt-2 overflow-x-auto scrollbar-hide">
             <div className="w-max flex flex-row gap-2 pb-1">
@@ -269,7 +271,7 @@ const ChatList = () => {
         </div>
       )}
       <h3 className="mt-4 text-xs font-semibold text-uni-muted uppercase tracking-wider px-1 self-start">
-        Chats
+        {t("chatList.chats")}
       </h3>
       {loadingChats ? (
         <div className="w-full flex flex-col gap-0.5 mt-1">
@@ -288,12 +290,11 @@ const ChatList = () => {
         </div>
       ) : chats.length === 0 ? (
         <p className="text-uni-muted text-sm text-center w-full py-6">
-          No conversations yet — search a username above or pick a suggestion to
-          start chatting.
+          {t("chatList.noChatsYet")}
         </p>
       ) : filteredChats.length === 0 ? (
         <p className="text-uni-muted text-sm text-center w-full py-6">
-          No conversations match your search.
+          {t("chatList.noMatches")}
         </p>
       ) : null}
       <div className="w-full flex flex-col gap-0.5 mt-1">
@@ -317,7 +318,7 @@ const ChatList = () => {
               </div>
               <p className="text-xs text-left text-uni-muted truncate">
                 {chat.user?.blocked?.includes(currentUser?.id)
-                  ? "Blocked"
+                  ? t("chatList.blocked")
                   : chat.lastSenderId === currentUser?.id
                   ? truncateMessage(chat.lastMessage || "")
                   : truncateMessage(chat.lastTranslatedMessage || "")}

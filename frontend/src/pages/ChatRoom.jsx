@@ -1,37 +1,41 @@
 ﻿import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Chat, Detail, List } from "@/components/chat";
 import useChatStore from "@/store/chatStore";
 import Navbar from "@/components/common/Navbar";
 
-const EmptyChatState = () => (
-  <div className="flex flex-col items-center justify-center h-full w-full text-center px-6">
-    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center mb-5">
-      <svg
-        width="32"
-        height="32"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="#818cf8"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-      </svg>
+const EmptyChatState = () => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center h-full w-full text-center px-6">
+      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center mb-5">
+        <svg
+          width="32"
+          height="32"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="#818cf8"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      </div>
+      <h2 className="text-xl font-semibold text-white">
+        {t("chatRoom.selectTitle")}
+      </h2>
+      <p className="text-sm text-uni-muted mt-2 max-w-sm">
+        {t("chatRoom.selectBody")}
+      </p>
     </div>
-    <h2 className="text-xl font-semibold text-white">
-      Select a chat to start messaging
-    </h2>
-    <p className="text-sm text-uni-muted mt-2 max-w-sm">
-      Choose a conversation from the sidebar, or search for a contact to begin
-      a new multilingual conversation.
-    </p>
-  </div>
-);
+  );
+};
 
 const ChatRoom = () => {
   const { chatId, isCurrentUserBlocked } = useChatStore();
   const [detailOpen, setDetailOpen] = useState(false);
+  const { t } = useTranslation();
 
   const hasChat = !!chatId;
   const toggleDetail = () => setDetailOpen((prev) => !prev);
@@ -61,7 +65,7 @@ const ChatRoom = () => {
             <EmptyChatState />
           ) : isCurrentUserBlocked ? (
             <div className="flex items-center justify-center w-full h-full text-uni-muted flex-col gap-2">
-              You have been blocked.
+              {t("chatRoom.blocked")}
             </div>
           ) : (
             <Chat onHeaderClick={toggleDetail} detailOpen={detailOpen} />
