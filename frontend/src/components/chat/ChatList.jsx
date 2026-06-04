@@ -19,8 +19,8 @@ import useChatStore from "@/store/chatStore";
 import { syncUserchats } from "@/services/userchats";
 import { searchIcon, plusIcon } from "@/assets";
 import { format } from "timeago.js";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import notify from "@/lib/toast";
+import Toaster from "@/components/ui/Toaster";
 import LoadingSpinner from "@/components/common/LoadingComponent";
 import Avatar from "@/components/ui/Avatar";
 
@@ -77,7 +77,7 @@ const ChatList = () => {
   }, [currentUser?.id]);
 
   useEffect(() => {
-    toast.info(toastify);
+    if (toastify) notify.info(toastify);
   }, [toastify]);
 
   useEffect(() => {
@@ -203,7 +203,7 @@ const ChatList = () => {
 
   return (
     <div className="flex-1 overflow-y-auto items-start flex flex-col w-full px-3 py-3 gap-1 uni-scroll">
-      <ToastContainer position="top-center" theme="dark" />
+      <Toaster />
       <div className="flex items-center gap-2 w-full">
         <div className="flex items-center gap-2 flex-1 bg-uni-surface border border-uni-border rounded-full px-3 py-2 focus-within:border-uni-lime/50 transition-colors">
           <img

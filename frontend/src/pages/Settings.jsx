@@ -9,10 +9,11 @@ import {
   updateDoc,
   where,
 } from "firebase/firestore";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import notify from "@/lib/toast";
+import Toaster from "@/components/ui/Toaster";
 import { db } from "@/lib/firebase";
 import useUserStore from "@/store/userStore";
+import { UI_LANGUAGES, setUiLanguage } from "@/lib/i18n";
 import { supportedLanguages } from "@/components/common/Languages";
 import LoadingSpinner from "@/components/common/LoadingComponent";
 import Avatar from "@/components/ui/Avatar";
@@ -162,18 +163,24 @@ const Settings = () => {
 
       // Refresh the store so the rest of the app reflects the edits immediately.
       await fetchUserInfo(currentUser.id);
-      toast.success(t("settings.updated"));
+
+      // Apply the UI language now — and only now, on submit (not live as the
+      // user browses the dropdown). Settings + the landing switcher are the only
+      // places that change the interface language (owner request, 2026-06-04).
+      if (UI_LANGUAGES.includes(form.language)) setUiLanguage(form.language);
+
+      notify.success(t("settings.updated"));
       setTimeout(() => navigate("/chat"), 800);
     } catch (err) {
       console.error("Profile update failed:", err);
-      toast.error(t("settings.saveFailed"));
+      notify.error(t("settings.saveFailed"));
       setSaving(false);
     }
   };
 
   return (
     <div className="h-screen overflow-y-auto uni-scroll bg-uni-bg text-uni-text">
-      <ToastContainer position="top-center" theme="dark" />
+      <Toaster />
 
       {/* Header */}
       <div className="sticky top-0 z-10 flex items-center gap-3 px-4 md:px-6 py-3 border-b border-uni-border bg-uni-bg/90 backdrop-blur">
