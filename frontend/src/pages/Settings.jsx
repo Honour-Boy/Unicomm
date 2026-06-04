@@ -172,7 +172,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="min-h-screen bg-uni-bg text-uni-text">
+    <div className="h-screen overflow-y-auto uni-scroll bg-uni-bg text-uni-text">
       <ToastContainer position="top-center" theme="dark" />
 
       {/* Header */}
