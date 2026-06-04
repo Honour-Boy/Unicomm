@@ -316,7 +316,10 @@ const ChatList = () => {
                     : ""}
                 </span>
               </div>
-              <p className="text-xs text-left text-uni-muted truncate">
+              <p
+                className="text-xs text-left text-uni-muted truncate"
+                translate="no"
+              >
                 {chat.user?.blocked?.includes(currentUser?.id)
                   ? t("chatList.blocked")
                   : chat.lastSenderId === currentUser?.id

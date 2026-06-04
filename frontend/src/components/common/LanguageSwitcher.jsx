@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { UI_LANGUAGES } from "@/lib/i18n";
+import { UI_LANGUAGES, setUiLanguage } from "@/lib/i18n";
 import languages from "@/components/common/Languages";
 
 // Maps a UI language code to its human label from the shared Languages list.
@@ -18,7 +18,7 @@ const LanguageSwitcher = ({ className = "" }) => {
   return (
     <select
       value={value}
-      onChange={(e) => i18n.changeLanguage(e.target.value)}
+      onChange={(e) => setUiLanguage(e.target.value)}
       aria-label={i18n.t("language.select")}
       className={`bg-uni-surface border border-uni-border rounded-lg text-sm text-uni-text px-2.5 py-1.5 outline-none cursor-pointer hover:border-indigo-500/60 focus:border-indigo-500/60 transition-colors ${className}`}
     >

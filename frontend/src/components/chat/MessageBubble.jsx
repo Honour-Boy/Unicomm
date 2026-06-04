@@ -35,7 +35,10 @@ const MessageBubble = ({
               : "bg-uni-surface text-uni-text rounded-bl-md border border-uni-border"
           }`}
         >
-          <p className="whitespace-pre-wrap text-left">
+          {/* translate="no" keeps a browser's page-translation (e.g. a French
+              UI) from re-translating message content — so toggling to the
+              original shows the recipient's real POV, not a browser render. */}
+          <p className="whitespace-pre-wrap text-left" translate="no">
             {isMine
               ? message.text
               : showOriginal

@@ -116,7 +116,7 @@ const Detail = ({ onClose }) => {
           <p className="text-xs font-semibold text-uni-muted uppercase tracking-wider mb-1">
             {t("common.bio")}
           </p>
-          <p className="text-sm text-uni-text leading-relaxed">
+          <p className="text-sm text-uni-text leading-relaxed" translate="no">
             {user?.bio || t("detail.noBio")}
           </p>
         </div>

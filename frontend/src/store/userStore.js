@@ -1,18 +1,18 @@
 ﻿import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase"; // Ensure the correct path to firebase.js
 import { create } from "zustand";
-import i18n, { UI_LANGUAGES } from "@/lib/i18n";
+import { UI_LANGUAGES, setUiLanguage } from "@/lib/i18n";
 
 // Language-first: align the UI language with the user's stored preference on
 // load — but only if they haven't explicitly chosen a UI language already
-// (the switcher persists that to localStorage as `uiLang`). Falls through
-// silently for languages without a catalog (i18n falls back to English).
+// (the switcher persists that to localStorage as `uiLang`). Lazy-loads the
+// catalog; falls back to English for languages without one.
 const syncUiLanguage = (language) => {
   try {
     const explicit =
       typeof localStorage !== "undefined" && localStorage.getItem("uiLang");
     if (!explicit && language && UI_LANGUAGES.includes(language)) {
-      i18n.changeLanguage(language);
+      setUiLanguage(language);
     }
   } catch {
     /* localStorage/i18n unavailable — ignore */
