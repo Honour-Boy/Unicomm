@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation, Trans } from "react-i18next";
 import { showPass, hidePass } from "@/assets";
 import { db, auth } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
@@ -29,6 +30,7 @@ function Register() {
   const [privacyContent, setPrivacyContent] = useState("");
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     fetch(terms)
@@ -48,11 +50,12 @@ function Register() {
 
   const validate = () => {
     const e = {};
-    if (!fullName.trim()) e.fullName = "Full name is required.";
-    if (password !== confirmPassword) e.confirmPassword = "Passwords do not match.";
+    if (!fullName.trim()) e.fullName = t("register.errFullName");
+    if (password !== confirmPassword)
+      e.confirmPassword = t("register.errPasswordsMatch");
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z]).{6,}$/;
     if (!passwordRegex.test(password))
-      e.password = "At least 6 chars, one upper, one lower.";
+      e.password = t("register.errPasswordRule");
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -76,11 +79,11 @@ function Register() {
       });
       // No userchats doc to seed: the index lives in the userchats/{uid}/items
       // subcollection, written server-side (rules deny client userchats writes).
-      toast.success("Account created. Let's set up your profile…");
+      toast.success(t("register.accountCreated"));
       setTimeout(() => navigate("/create-profile"), 1500);
     } catch (error) {
       console.error(error);
-      toast.error("Registration failed. Please try again.");
+      toast.error(t("register.registrationFailed"));
     } finally {
       setLoading(false);
     }
@@ -104,8 +107,8 @@ function Register() {
           <div className="bg-uni-surface border border-uni-border text-uni-text rounded-2xl max-w-lg w-full max-h-[80vh] overflow-y-auto uni-scroll p-6">
             <h2 className="text-xl font-bold mb-3 text-white">
               {popupContent === "terms"
-                ? "Terms and Conditions"
-                : "Privacy Policy"}
+                ? t("register.termsTitle")
+                : t("register.privacyTitle")}
             </h2>
             <div className="text-sm text-uni-text whitespace-pre-wrap text-left leading-relaxed">
               <ReactMarkdown>
@@ -116,19 +119,19 @@ function Register() {
               onClick={() => setShowPopup(false)}
               className="mt-5 auth-primary-btn"
             >
-              Close
+              {t("register.close")}
             </button>
           </div>
         </div>
       )}
 
       <AuthLayout
-        title="Create your account"
-        subtitle="Join Unicomm and start chatting across languages."
+        title={t("register.title")}
+        subtitle={t("register.subtitle")}
         wide
       >
         <form onSubmit={handleRegister} className="space-y-4">
-          <Field label="Full name" htmlFor="fullName">
+          <Field label={t("register.fullName")} htmlFor="fullName">
             <input
               type="text"
               id="fullName"
@@ -141,7 +144,7 @@ function Register() {
             {errors.fullName && <ErrorText msg={errors.fullName} />}
           </Field>
 
-          <Field label="Email" htmlFor="email">
+          <Field label={t("register.email")} htmlFor="email">
             <input
               type="email"
               id="email"
@@ -154,7 +157,7 @@ function Register() {
           </Field>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Password" htmlFor="password">
+            <Field label={t("register.password")} htmlFor="password">
               <div className="relative">
                 <input
                   type={passwordShow.type}
@@ -169,7 +172,7 @@ function Register() {
                   type="button"
                   onClick={togglePassword}
                   className="absolute inset-y-0 right-3 flex items-center text-uni-muted hover:text-white"
-                  aria-label="Toggle password"
+                  aria-label={t("register.password")}
                 >
                   <img src={passwordShow.img} className="w-4" alt="" />
                 </button>
@@ -177,7 +180,7 @@ function Register() {
               {errors.password && <ErrorText msg={errors.password} />}
             </Field>
 
-            <Field label="Confirm password" htmlFor="confirmPassword">
+            <Field label={t("register.confirmPassword")} htmlFor="confirmPassword">
               <input
                 type={passwordShow.type}
                 id="confirmPassword"
@@ -200,23 +203,25 @@ function Register() {
               required
             />
             <span>
-              I agree to Unicomm's{" "}
-              <a
-                href="#"
-                onClick={openTerms}
-                className="text-indigo-400 hover:text-indigo-300"
-              >
-                Terms
-              </a>{" "}
-              and{" "}
-              <a
-                href="#"
-                onClick={openPrivacy}
-                className="text-indigo-400 hover:text-indigo-300"
-              >
-                Privacy Policy
-              </a>
-              .
+              <Trans
+                i18nKey="register.agree"
+                components={{
+                  terms: (
+                    <a
+                      href="#"
+                      onClick={openTerms}
+                      className="text-indigo-400 hover:text-indigo-300"
+                    />
+                  ),
+                  privacy: (
+                    <a
+                      href="#"
+                      onClick={openPrivacy}
+                      className="text-indigo-400 hover:text-indigo-300"
+                    />
+                  ),
+                }}
+              />
             </span>
           </label>
 
@@ -225,16 +230,16 @@ function Register() {
             disabled={loading}
             className="auth-primary-btn"
           >
-            {loading ? <Spinner /> : "Create account"}
+            {loading ? <Spinner /> : t("register.createAccount")}
           </button>
 
           <p className="text-center text-sm text-uni-muted pt-1">
-            Already have an account?{" "}
+            {t("register.haveAccount")}{" "}
             <Link
               to="/login"
               className="text-indigo-400 hover:text-indigo-300 font-medium"
             >
-              Sign in
+              {t("register.signIn")}
             </Link>
           </p>
         </form>

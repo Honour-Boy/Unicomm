@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   collection,
   doc,
@@ -35,6 +36,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const { currentUser } = useUserStore();
   const { chatId, user, isCurrentUserBlocked, isReceiverBlocked } =
     useChatStore();
+  const { t } = useTranslation();
   const endRef = useRef(null);
   const lastMsgIdRef = useRef(null);
 
@@ -201,7 +203,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
           />
           <div className="flex flex-col leading-tight min-w-0">
             <span className="text-sm md:text-base font-semibold text-white truncate">
-              {user?.fullName || "Select a chat"}
+              {user?.fullName || t("chat.selectChat")}
             </span>
             <span className="flex items-center gap-1.5 text-xs text-uni-muted">
               <span
@@ -209,15 +211,15 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
                   online ? "bg-uni-online animate-pulse-dot" : "bg-uni-muted/50"
                 }`}
               />
-              {online ? "Online" : "Offline"}
+              {online ? t("common.online") : t("common.offline")}
             </span>
           </div>
         </button>
         <button
           onClick={onHeaderClick}
           className="p-2 rounded-lg text-uni-muted hover:text-white hover:bg-uni-surface transition-colors"
-          title={detailOpen ? "Close profile" : "View profile"}
-          aria-label="Profile details"
+          title={detailOpen ? t("chat.closeProfile") : t("chat.viewProfile")}
+          aria-label={t("chat.viewProfile")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -245,12 +247,14 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
               🌍
             </div>
             <p className="text-lg font-semibold text-white">
-              Start a conversation across languages
+              {t("chat.emptyTitle")}
             </p>
             <p className="text-sm text-uni-muted mt-1 max-w-xs">
-              Messages you send in {sourceLabel} will appear to{" "}
-              {user?.fullName?.split(" ")[0] || "your contact"} in {targetLabel}
-              , instantly.
+              {t("chat.emptyBody", {
+                source: sourceLabel,
+                name: user?.fullName?.split(" ")[0] || t("chat.yourContact"),
+                target: targetLabel,
+              })}
             </p>
           </div>
         )}
@@ -261,7 +265,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
               onClick={loadOlder}
               className="text-xs font-medium text-uni-muted hover:text-white bg-uni-surface border border-uni-border rounded-full px-4 py-1.5 transition-colors"
             >
-              Load older messages
+              {t("chat.loadOlder")}
             </button>
           </div>
         )}
@@ -285,12 +289,12 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
         {sendError && (
           <div className="flex justify-end animate-fade-in-up">
             <div className="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-300 text-xs">
-              <span>Couldn&apos;t send your message.</span>
+              <span>{t("chat.sendFailed")}</span>
               <button
                 onClick={handleRetry}
                 className="font-semibold text-white bg-red-500/80 hover:bg-red-500 px-2.5 py-1 rounded-md transition-colors"
               >
-                Retry
+                {t("chat.retry")}
               </button>
             </div>
           </div>
@@ -313,7 +317,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
             <input
               type="text"
               placeholder={
-                disabled ? "You cannot send a message" : "Type your message…"
+                disabled ? t("chat.cannotSend") : t("chat.messagePlaceholder")
               }
               value={text}
               onChange={(e) => setText(e.target.value)}
@@ -332,7 +336,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
                 type="button"
                 onClick={() => !isReceiverBlocked && setOpenEmoji((p) => !p)}
                 className="p-1.5 rounded-full text-uni-muted hover:text-white hover:bg-white/5 transition-colors"
-                aria-label="Emoji"
+                aria-label={t("chat.emoji")}
               >
                 <EmojiIcon />
               </button>
@@ -351,7 +355,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
               onClick={handleSend}
               disabled={disabled || !text.trim()}
               className="flex items-center justify-center w-9 h-9 rounded-full bg-bubble-sent text-white shadow-bubble hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
-              aria-label="Send"
+              aria-label={t("chat.send")}
             >
               <SendIcon />
             </button>

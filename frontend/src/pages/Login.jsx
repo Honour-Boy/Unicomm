@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { showPass, hidePass, googleLogo } from "@/assets";
 import { auth, googleProvider, db } from "@/lib/firebase";
 import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
@@ -20,6 +21,7 @@ function Login() {
     img: hidePass,
   });
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const togglePassword = () =>
     setPasswordShow((p) => ({
@@ -31,7 +33,7 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error("Please fill in all fields.");
+      toast.error(t("login.fillAllFields"));
       return;
     }
     setLoading(true);
@@ -40,11 +42,11 @@ function Login() {
       // authenticates Firestore and drives routing via onAuthStateChanged.
       // No backend round-trip needed.
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success("Signed in. Redirecting…");
+      toast.success(t("login.signedIn"));
       navigate("/chat");
     } catch (error) {
       console.error(error);
-      toast.error("Invalid email or password.");
+      toast.error(t("login.invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -73,7 +75,7 @@ function Login() {
       // Send first-time users to profile setup, returning users straight to
       // chat. This explicit navigate runs after the auth state has settled, so
       // it wins over PublicRouter's "authenticated → /chat" redirect.
-      toast.success("Signed in with Google");
+      toast.success(t("login.signedInGoogle"));
       const userData = (await getDoc(userDocRef)).data();
       if (!userData?.username) {
         navigate("/create-profile");
@@ -82,19 +84,16 @@ function Login() {
       }
     } catch (error) {
       console.error(error);
-      toast.error("Google sign-in failed. Please try again.");
+      toast.error(t("login.googleFailed"));
     } finally {
       setGoogleLoading(false);
     }
   };
 
   return (
-    <AuthLayout
-      title="Welcome back"
-      subtitle="Sign in to continue your conversations."
-    >
+    <AuthLayout title={t("login.title")} subtitle={t("login.subtitle")}>
       <form onSubmit={handleLogin} className="space-y-4">
-        <Field label="Email" htmlFor="email">
+        <Field label={t("login.email")} htmlFor="email">
           <input
             type="email"
             id="email"
@@ -106,7 +105,7 @@ function Login() {
           />
         </Field>
 
-        <Field label="Password" htmlFor="password">
+        <Field label={t("login.password")} htmlFor="password">
           <div className="relative">
             <input
               type={passwordShow.type}
@@ -121,7 +120,7 @@ function Login() {
               type="button"
               onClick={togglePassword}
               className="absolute inset-y-0 right-3 flex items-center text-uni-muted hover:text-white"
-              aria-label="Toggle password visibility"
+              aria-label={t("login.password")}
             >
               <img src={passwordShow.img} className="w-4" alt="" />
             </button>
@@ -134,13 +133,13 @@ function Login() {
               type="checkbox"
               className="accent-indigo-500 w-4 h-4 rounded"
             />
-            Remember me
+            {t("login.rememberMe")}
           </label>
           <Link
             to="/forgot-password"
             className="text-indigo-400 hover:text-indigo-300 font-medium"
           >
-            Forgot password?
+            {t("login.forgotPassword")}
           </Link>
         </div>
 
@@ -149,12 +148,12 @@ function Login() {
           disabled={loading}
           className="auth-primary-btn"
         >
-          {loading ? <Spinner /> : "Sign in"}
+          {loading ? <Spinner /> : t("login.signIn")}
         </button>
 
         <div className="flex items-center gap-3 my-2 text-xs text-uni-muted">
           <span className="h-px flex-1 bg-uni-border" />
-          OR
+          {t("login.or")}
           <span className="h-px flex-1 bg-uni-border" />
         </div>
 
@@ -169,18 +168,18 @@ function Login() {
           ) : (
             <>
               <img src={googleLogo} alt="" className="w-4 h-4" />
-              Continue with Google
+              {t("login.continueGoogle")}
             </>
           )}
         </button>
 
         <p className="text-center text-sm text-uni-muted pt-2">
-          New to Unicomm?{" "}
+          {t("login.newToUnicomm")}{" "}
           <Link
             to="/register"
             className="text-indigo-400 hover:text-indigo-300 font-medium"
           >
-            Create an account
+            {t("login.createAccount")}
           </Link>
         </p>
       </form>

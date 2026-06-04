@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { ToastContainer, toast } from "react-toastify";
@@ -13,32 +14,30 @@ const ForgotPassword = () => {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
-      toast.error("Please enter your email.");
+      toast.error(t("forgot.enterEmail"));
       return;
     }
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
       setSent(true);
-      toast.success("Reset link sent — check your inbox.");
+      toast.success(t("forgot.resetSent"));
       setTimeout(() => navigate("/login"), 3500);
     } catch (error) {
       console.error(error);
-      toast.error("Could not send reset email. Please try again.");
+      toast.error(t("forgot.resetFailed"));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout
-      title="Forgot your password?"
-      subtitle="Enter the email tied to your account and we'll send you a reset link."
-    >
+    <AuthLayout title={t("forgot.title")} subtitle={t("forgot.subtitle")}>
       {sent ? (
         <div className="flex flex-col items-center text-center py-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/20 flex items-center justify-center text-indigo-300 mb-4">
@@ -56,21 +55,23 @@ const ForgotPassword = () => {
               <polyline points="22 4 12 14.01 9 11.01" />
             </svg>
           </div>
-          <h2 className="text-lg font-semibold text-white">Check your inbox</h2>
+          <h2 className="text-lg font-semibold text-white">
+            {t("forgot.checkInbox")}
+          </h2>
           <p className="text-sm text-uni-muted mt-1">
-            We've sent a password reset link to <br />
+            {t("forgot.sentTo")} <br />
             <span className="text-white">{email}</span>
           </p>
           <Link
             to="/login"
             className="mt-5 auth-secondary-btn inline-flex justify-center"
           >
-            Back to sign in
+            {t("forgot.backToSignIn")}
           </Link>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Field label="Email" htmlFor="email">
+          <Field label={t("forgot.email")} htmlFor="email">
             <input
               type="email"
               id="email"
@@ -83,16 +84,16 @@ const ForgotPassword = () => {
           </Field>
 
           <button type="submit" disabled={loading} className="auth-primary-btn">
-            {loading ? <Spinner /> : "Send reset link"}
+            {loading ? <Spinner /> : t("forgot.sendResetLink")}
           </button>
 
           <p className="text-center text-sm text-uni-muted pt-1">
-            Remembered it?{" "}
+            {t("forgot.rememberedIt")}{" "}
             <Link
               to="/login"
               className="text-indigo-400 hover:text-indigo-300 font-medium"
             >
-              Back to sign in
+              {t("forgot.backToSignIn")}
             </Link>
           </p>
         </form>
