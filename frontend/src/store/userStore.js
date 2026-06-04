@@ -3,15 +3,14 @@ import { db } from "@/lib/firebase"; // Ensure the correct path to firebase.js
 import { create } from "zustand";
 import { UI_LANGUAGES, setUiLanguage } from "@/lib/i18n";
 
-// Language-first: align the UI language with the user's stored preference on
-// load — but only if they haven't explicitly chosen a UI language already
-// (the switcher persists that to localStorage as `uiLang`). Lazy-loads the
-// catalog; falls back to English for languages without one.
+// Language-first: a signed-in user's stored profile `language` is the source of
+// truth for the UI language and is applied on every load — it wins over the
+// landing-screen switcher (which is just for pre-login browsing). The only way
+// to change it afterward is from the profile (Settings). Lazy-loads the catalog;
+// falls back to English for languages without one.
 const syncUiLanguage = (language) => {
   try {
-    const explicit =
-      typeof localStorage !== "undefined" && localStorage.getItem("uiLang");
-    if (!explicit && language && UI_LANGUAGES.includes(language)) {
+    if (language && UI_LANGUAGES.includes(language)) {
       setUiLanguage(language);
     }
   } catch {

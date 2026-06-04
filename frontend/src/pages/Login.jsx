@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import { showPass, hidePass, googleLogo } from "@/assets";
 import { auth, googleProvider, db } from "@/lib/firebase";
 import { signInWithPopup, signInWithEmailAndPassword } from "firebase/auth";
-import { toast, ToastContainer } from "react-toastify";
+import notify from "@/lib/toast";
+import Toaster from "@/components/ui/Toaster";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import "react-toastify/dist/ReactToastify.css";
 import AuthLayout from "@/components/ui/AuthLayout";
 import Field from "@/components/ui/Field";
 import Spinner from "@/components/ui/Spinner";
@@ -33,7 +33,7 @@ function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error(t("login.fillAllFields"));
+      notify.error(t("login.fillAllFields"));
       return;
     }
     setLoading(true);
@@ -42,11 +42,11 @@ function Login() {
       // authenticates Firestore and drives routing via onAuthStateChanged.
       // No backend round-trip needed.
       await signInWithEmailAndPassword(auth, email, password);
-      toast.success(t("login.signedIn"));
+      notify.success(t("login.signedIn"));
       navigate("/chat");
     } catch (error) {
       console.error(error);
-      toast.error(t("login.invalidCredentials"));
+      notify.error(t("login.invalidCredentials"));
     } finally {
       setLoading(false);
     }
@@ -75,7 +75,7 @@ function Login() {
       // Send first-time users to profile setup, returning users straight to
       // chat. This explicit navigate runs after the auth state has settled, so
       // it wins over PublicRouter's "authenticated → /chat" redirect.
-      toast.success(t("login.signedInGoogle"));
+      notify.success(t("login.signedInGoogle"));
       const userData = (await getDoc(userDocRef)).data();
       if (!userData?.username) {
         navigate("/create-profile");
@@ -84,7 +84,7 @@ function Login() {
       }
     } catch (error) {
       console.error(error);
-      toast.error(t("login.googleFailed"));
+      notify.error(t("login.googleFailed"));
     } finally {
       setGoogleLoading(false);
     }
@@ -183,7 +183,7 @@ function Login() {
           </Link>
         </p>
       </form>
-      <ToastContainer position="top-center" theme="dark" />
+      <Toaster />
     </AuthLayout>
   );
 }

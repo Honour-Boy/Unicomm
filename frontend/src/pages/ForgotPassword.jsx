@@ -3,8 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import notify from "@/lib/toast";
+import Toaster from "@/components/ui/Toaster";
 import AuthLayout from "@/components/ui/AuthLayout";
 import Field from "@/components/ui/Field";
 import Spinner from "@/components/ui/Spinner";
@@ -19,18 +19,18 @@ const ForgotPassword = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email) {
-      toast.error(t("forgot.enterEmail"));
+      notify.error(t("forgot.enterEmail"));
       return;
     }
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
       setSent(true);
-      toast.success(t("forgot.resetSent"));
+      notify.success(t("forgot.resetSent"));
       setTimeout(() => navigate("/login"), 3500);
     } catch (error) {
       console.error(error);
-      toast.error(t("forgot.resetFailed"));
+      notify.error(t("forgot.resetFailed"));
     } finally {
       setLoading(false);
     }
@@ -98,7 +98,7 @@ const ForgotPassword = () => {
           </p>
         </form>
       )}
-      <ToastContainer position="top-center" theme="dark" />
+      <Toaster />
     </AuthLayout>
   );
 };

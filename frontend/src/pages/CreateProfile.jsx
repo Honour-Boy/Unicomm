@@ -4,10 +4,11 @@ import { useTranslation } from "react-i18next";
 import { db, auth } from "@/lib/firebase"; // Ensure firebase.js is correctly configured
 import { doc, setDoc, getDocs, collection } from "firebase/firestore";
 import { where, query } from "firebase/firestore";
-import { ToastContainer, toast } from "react-toastify";
-import { supportedLanguages } from "@/components/common/Languages";
+import notify from "@/lib/toast";
+import Toaster from "@/components/ui/Toaster";
+import useUserStore from "@/store/userStore";
 import { UI_LANGUAGES, setUiLanguage } from "@/lib/i18n";
-import "react-toastify/dist/ReactToastify.css";
+import { supportedLanguages } from "@/components/common/Languages";
 
 const Profile = () => {
   const { t } = useTranslation();
@@ -21,13 +22,13 @@ const Profile = () => {
   const [jobTitle, setJobTitle] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const fetchUserInfo = useUserStore((s) => s.fetchUserInfo);
 
-  // Picking a preferred language also switches the UI into it immediately
-  // (when a catalog exists) — the "language-first" experience.
+  // Just record the chosen preferred language for the profile. We intentionally
+  // do NOT switch the live UI language here — only the landing-page switcher and
+  // Settings change the UI language (owner request, 2026-06-04).
   const handleLanguageChange = (e) => {
-    const value = e.target.value;
-    setLanguage(value);
-    if (UI_LANGUAGES.includes(value)) setUiLanguage(value);
+    setLanguage(e.target.value);
   };
 
   const handleNext = () => {
@@ -42,13 +43,13 @@ const Profile = () => {
     e.preventDefault();
     const user = auth.currentUser;
     if (!user) {
-      toast.error(t("profile.notAuthenticated"));
+      notify.error(t("profile.notAuthenticated"));
       return;
     }
 
     // Ensure username starts with "@"
     if (!username.startsWith("@")) {
-      toast.error(t("profile.usernameAt"));
+      notify.error(t("profile.usernameAt"));
       return;
     }
     setLoading(true);
@@ -58,7 +59,7 @@ const Profile = () => {
     const querySnapshot = await getDocs(q);
 
     if (!querySnapshot.empty) {
-      toast.warn(t("profile.selectAnotherUsername"));
+      notify.warn(t("profile.selectAnotherUsername"));
       setLoading(false);
       return;
     }
@@ -76,15 +77,23 @@ const Profile = () => {
 
       await setDoc(doc(db, "users", user.uid), userProfile, { merge: true });
 
-      toast.success(t("profile.profileCreated"));
-      setTimeout(() => {
-        // The user just authenticated to create the profile, so go straight to
-        // chat; fall back to login only if the session somehow dropped.
-        navigate(auth.currentUser ? "/chat" : "/login");
-      }, 3000);
+      // Refresh the store so the now-complete profile (username set) is in
+      // currentUser before we route to /chat — otherwise the /chat guard would
+      // see the stale profile-less doc and bounce straight back here.
+      await fetchUserInfo(user.uid);
+
+      // Apply the chosen language now, on submit — the profile language becomes
+      // the UI language shown throughout the app (changed only from the profile
+      // afterward). We deliberately don't switch live while the dropdown is open.
+      if (UI_LANGUAGES.includes(language)) setUiLanguage(language);
+
+      notify.success(t("profile.profileCreated"));
+      // The user just authenticated to create the profile, so go straight to
+      // chat; fall back to login only if the session somehow dropped.
+      navigate(auth.currentUser ? "/chat" : "/login");
     } catch (error) {
       console.error("Profile creation error:", error.message);
-      toast.error(t("profile.profileFailed"));
+      notify.error(t("profile.profileFailed"));
     }
   };
 
@@ -234,7 +243,7 @@ const Profile = () => {
 
   return (
     <div className="flex flex-col gap-8 items-center h-screen overflow-y-auto uni-scroll bg-uni-bg text-uni-text px-4 py-12">
-      <ToastContainer position="top-center" theme="dark" />
+      <Toaster />
       <h1 className="text-4xl sm:text-5xl font-bold">{t("profile.title")}</h1>
       <form
         onSubmit={handleSubmit}
