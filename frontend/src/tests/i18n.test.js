@@ -36,11 +36,17 @@ test("localizes the chat/settings surfaces", async () => {
   );
 });
 
-test("UI_LANGUAGES only lists languages that have a shipped catalog", () => {
-  // 14 catalogs ship today (en + 13 lazy-loaded). The goal is all 30 chat
-  // languages; the remaining 16 are a documented hand-off task (docs/handoff.md).
-  // Guards against listing a language whose catalog file is missing (which would
-  // break the build's dynamic import).
+test("ships a catalog for all 30 supported chat languages", () => {
+  // UI_LANGUAGES must stay aligned with the translation backend's served set
+  // (Languages.js `supported`) so a user can't pick a language whose UI
+  // silently stays English. Also guards against listing a language whose
+  // catalog file is missing (which would break the build's dynamic import).
   expect(UI_LANGUAGES).toContain("en");
-  expect(UI_LANGUAGES.length).toBe(14);
+  expect(UI_LANGUAGES.length).toBe(30);
+});
+
+test("lazy-loads a non-Latin, RTL-eligible catalog (Persian)", async () => {
+  await setUiLanguage("fa");
+  expect(i18n.t("login.signIn")).toBe("ورود");
+  expect(document.documentElement.dir).toBe("rtl");
 });
