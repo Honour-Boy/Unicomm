@@ -34,7 +34,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   const [expandedOriginals, setExpandedOriginals] = useState({});
 
   const { currentUser } = useUserStore();
-  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked } =
+  const { chatId, user, isCurrentUserBlocked, isReceiverBlocked, resetChat } =
     useChatStore();
   const { t } = useTranslation();
   const endRef = useRef(null);
@@ -184,10 +184,22 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
   return (
     <div className="chat-container">
       {/* Top navigation bar */}
-      <div className="flex items-center justify-between gap-3 px-4 md:px-6 py-3 border-b border-uni-border bg-uni-bg/80 backdrop-blur">
+      <div className="flex items-center justify-between gap-2 md:gap-3 px-3 md:px-6 py-3 border-b border-uni-border bg-uni-bg/80 backdrop-blur">
+        {/* Back to chat list — mobile only (the sidebar is hidden once a chat
+            is open). Clears the selected chat via the store. */}
+        <button
+          onClick={resetChat}
+          className="md:hidden flex items-center justify-center w-10 h-10 -ml-1 rounded-lg text-uni-muted hover:text-white hover:bg-uni-surface transition-colors shrink-0"
+          aria-label={t("chat.backToList")}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5" />
+            <path d="m12 19-7-7 7-7" />
+          </svg>
+        </button>
         <button
           onClick={onHeaderClick}
-          className="flex items-center gap-3 min-w-0 rounded-lg p-1 -m-1 hover:bg-uni-surface/60 transition-colors text-left"
+          className="flex items-center gap-2.5 md:gap-3 min-w-0 flex-1 rounded-lg p-1 -m-1 hover:bg-uni-surface/60 transition-colors text-left"
           aria-expanded={detailOpen}
           aria-label="Open profile"
         >
@@ -217,7 +229,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
         </button>
         <button
           onClick={onHeaderClick}
-          className="p-2 rounded-lg text-uni-muted hover:text-white hover:bg-uni-surface transition-colors"
+          className="flex items-center justify-center w-10 h-10 shrink-0 rounded-lg text-uni-muted hover:text-white hover:bg-uni-surface transition-colors"
           title={detailOpen ? t("chat.closeProfile") : t("chat.viewProfile")}
           aria-label={t("chat.viewProfile")}
         >
@@ -354,7 +366,7 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
             <button
               onClick={handleSend}
               disabled={disabled || !text.trim()}
-              className="flex items-center justify-center w-9 h-9 rounded-full bg-brand text-uni-on-accent shadow-bubble hover:shadow-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+              className="flex items-center justify-center w-10 h-10 shrink-0 rounded-full bg-brand text-uni-on-accent shadow-bubble hover:shadow-glow disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               aria-label={t("chat.send")}
             >
               <SendIcon />
