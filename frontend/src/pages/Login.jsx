@@ -131,13 +131,13 @@ function Login() {
           <label className="flex items-center gap-2 text-uni-muted cursor-pointer select-none">
             <input
               type="checkbox"
-              className="accent-indigo-500 w-4 h-4 rounded"
+              className="accent-uni-lime w-4 h-4 rounded"
             />
             {t("login.rememberMe")}
           </label>
           <Link
             to="/forgot-password"
-            className="text-indigo-400 hover:text-indigo-300 font-medium"
+            className="text-uni-cyan hover:text-uni-lime font-medium"
           >
             {t("login.forgotPassword")}
           </Link>
@@ -177,7 +177,7 @@ function Login() {
           {t("login.newToUnicomm")}{" "}
           <Link
             to="/register"
-            className="text-indigo-400 hover:text-indigo-300 font-medium"
+            className="text-uni-cyan hover:text-uni-lime font-medium"
           >
             {t("login.createAccount")}
           </Link>

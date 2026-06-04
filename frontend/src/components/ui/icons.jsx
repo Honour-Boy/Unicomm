@@ -73,7 +73,7 @@ export const Arrow = () => (
 
 export const Dot = ({ style }) => (
   <span
-    className="inline-block w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse-dot"
+    className="inline-block w-1.5 h-1.5 rounded-full bg-uni-lime animate-pulse-dot"
     style={style}
   />
 );
