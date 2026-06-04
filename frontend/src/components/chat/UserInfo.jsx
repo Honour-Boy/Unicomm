@@ -1,12 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import useUserStore from "@/store/userStore";
+import Avatar from "@/components/ui/Avatar";
 
 const Userinfo = () => {
   const { currentUser } = useUserStore();
   const navigate = useNavigate();
-  const letter =
-    (currentUser?.fullName?.split(" ")[0]?.charAt(0) || "") +
-    (currentUser?.fullName?.split(" ")[0]?.charAt(1)?.toUpperCase() || "");
 
   return (
     <div className="flex items-center justify-between px-4 py-4 border-b border-uni-border">
@@ -15,7 +13,7 @@ const Userinfo = () => {
         className="flex items-center gap-3 min-w-0 rounded-lg p-1 -m-1 hover:bg-uni-surface/60 transition-colors text-left"
         aria-label="Edit your profile"
       >
-        <div className="user-avatar-small text-sm">{letter}</div>
+        <Avatar user={currentUser} small className="text-sm" />
         <div className="flex flex-col min-w-0">
           <span className="text-[10px] uppercase tracking-wider text-uni-muted font-semibold">
             Unicomm

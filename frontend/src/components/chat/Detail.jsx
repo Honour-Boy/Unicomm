@@ -12,6 +12,7 @@ import useUserStore from "@/store/userStore";
 import languages from "@/components/common/Languages";
 import { isUserOnline } from "@/hooks/usePresence";
 import { format } from "timeago.js";
+import Avatar from "@/components/ui/Avatar";
 
 const Detail = ({ onClose }) => {
   const { user, isCurrentUserBlocked, isReceiverBlocked, changeBlock } =
@@ -40,10 +41,6 @@ const Detail = ({ onClose }) => {
       console.log(err);
     }
   };
-
-  const initials =
-    (user?.fullName?.charAt(0) || "") +
-    (user?.fullName?.charAt(1)?.toUpperCase() || "");
 
   const langLabel =
     languages.find((l) => l.value === user?.language)?.label || "—";
@@ -90,7 +87,7 @@ const Detail = ({ onClose }) => {
 
       {/* Profile */}
       <div className="flex flex-col items-center text-center px-6 py-6 border-b border-uni-border">
-        <div className="user-avatar !w-20 !h-20 text-2xl">{initials}</div>
+        <Avatar user={liveUser || user} className="!w-20 !h-20 text-2xl" />
         <h2 className="mt-3 text-lg font-semibold">{user?.fullName}</h2>
         <p className="text-sm text-uni-muted">{user?.username}</p>
         <div className="mt-3 flex items-center gap-1.5 text-xs">
