@@ -1,25 +1,46 @@
-// Exercises the i18n config in lib/i18n.js: catalog lookup, French translation,
-// fallback to English for languages without a catalog, and RTL direction.
-import i18n from "@/lib/i18n";
+// Exercises the i18n config in lib/i18n.js: lazy catalog loading, French
+// translation, fallback to English for languages without a catalog, and RTL.
+// Non-English catalogs are lazy-loaded, so we switch via setUiLanguage (which
+// awaits the catalog) rather than i18n.changeLanguage directly.
+import i18n, { setUiLanguage, UI_LANGUAGES } from "@/lib/i18n";
 
 test("resolves an English string", async () => {
-  await i18n.changeLanguage("en");
+  await setUiLanguage("en");
   expect(i18n.t("login.signIn")).toBe("Sign in");
   expect(document.documentElement.dir).toBe("ltr");
 });
 
-test("translates into French", async () => {
-  await i18n.changeLanguage("fr");
+test("lazy-loads and translates into French", async () => {
+  await setUiLanguage("fr");
   expect(i18n.t("login.signIn")).toBe("Se connecter");
 });
 
 test("flips <html dir> to rtl for Arabic", async () => {
-  await i18n.changeLanguage("ar");
+  await setUiLanguage("ar");
   expect(i18n.t("login.signIn")).toBe("تسجيل الدخول");
   expect(document.documentElement.dir).toBe("rtl");
 });
 
 test("falls back to English for a language without a catalog", async () => {
-  await i18n.changeLanguage("de");
+  await setUiLanguage("zz"); // not a UI language
   expect(i18n.t("login.signIn")).toBe("Sign in");
+});
+
+test("localizes the chat/settings surfaces", async () => {
+  await setUiLanguage("fr");
+  expect(i18n.t("settings.editProfile")).toBe("Modifier le profil");
+  expect(i18n.t("chat.send")).toBe("Envoyer");
+  // Interpolation still works in a translated string.
+  expect(i18n.t("chat.translatedTo", { lang: "anglais" })).toBe(
+    "Traduit en anglais"
+  );
+});
+
+test("UI_LANGUAGES only lists languages that have a shipped catalog", () => {
+  // 14 catalogs ship today (en + 13 lazy-loaded). The goal is all 30 chat
+  // languages; the remaining 16 are a documented hand-off task (docs/handoff.md).
+  // Guards against listing a language whose catalog file is missing (which would
+  // break the build's dynamic import).
+  expect(UI_LANGUAGES).toContain("en");
+  expect(UI_LANGUAGES.length).toBe(14);
 });

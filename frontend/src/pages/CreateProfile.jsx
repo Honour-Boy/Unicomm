@@ -6,11 +6,11 @@ import { doc, setDoc, getDocs, collection } from "firebase/firestore";
 import { where, query } from "firebase/firestore";
 import { ToastContainer, toast } from "react-toastify";
 import { supportedLanguages } from "@/components/common/Languages";
-import { UI_LANGUAGES } from "@/lib/i18n";
+import { UI_LANGUAGES, setUiLanguage } from "@/lib/i18n";
 import "react-toastify/dist/ReactToastify.css";
 
 const Profile = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [section, setSection] = useState(0);
   const [username, setUsername] = useState("");
   const [language, setLanguage] = useState("");
@@ -27,7 +27,7 @@ const Profile = () => {
   const handleLanguageChange = (e) => {
     const value = e.target.value;
     setLanguage(value);
-    if (UI_LANGUAGES.includes(value)) i18n.changeLanguage(value);
+    if (UI_LANGUAGES.includes(value)) setUiLanguage(value);
   };
 
   const handleNext = () => {

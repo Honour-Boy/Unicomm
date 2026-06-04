@@ -1,4 +1,5 @@
 import { format } from "timeago.js";
+import { useTranslation } from "react-i18next";
 import { TranslateIcon } from "@/components/ui/icons";
 
 // A single chat message: the bubble, the translation label/toggle, and timestamp.
@@ -12,6 +13,7 @@ const MessageBubble = ({
   sourceLabel,
   onToggleOriginal,
 }) => {
+  const { t } = useTranslation();
   const hasTranslation =
     message.translatedText && message.translatedText !== message.text;
 
@@ -33,7 +35,10 @@ const MessageBubble = ({
               : "bg-uni-surface text-uni-text rounded-bl-md border border-uni-border"
           }`}
         >
-          <p className="whitespace-pre-wrap text-left">
+          {/* translate="no" keeps a browser's page-translation (e.g. a French
+              UI) from re-translating message content — so toggling to the
+              original shows the recipient's real POV, not a browser render. */}
+          <p className="whitespace-pre-wrap text-left" translate="no">
             {isMine
               ? message.text
               : showOriginal
@@ -52,7 +57,7 @@ const MessageBubble = ({
             {isMine ? (
               <span className="flex items-center gap-1">
                 <TranslateIcon />
-                Translated to {targetLabel}
+                {t("chat.translatedTo", { lang: targetLabel })}
               </span>
             ) : (
               <button
@@ -60,7 +65,9 @@ const MessageBubble = ({
                 className="flex items-center gap-1 hover:text-indigo-300 transition-colors"
               >
                 <TranslateIcon />
-                {showOriginal ? "Show translation" : `translated from ${sourceLabel}`}
+                {showOriginal
+                  ? t("chat.showTranslation")
+                  : t("chat.translatedFrom", { lang: sourceLabel })}
               </button>
             )}
           </div>
