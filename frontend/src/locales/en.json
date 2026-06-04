@@ -155,6 +155,7 @@
   },
   "chat": {
     "selectChat": "Select a chat",
+    "backToList": "Back to chats",
     "emptyTitle": "Start a conversation across languages",
     "emptyBody": "Messages you send in {{source}} will appear to {{name}} in {{target}}, instantly.",
     "yourContact": "your contact",

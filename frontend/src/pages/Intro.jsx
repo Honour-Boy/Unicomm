@@ -48,13 +48,13 @@ function Intro() {
             <LanguageSwitcher />
             <button
               onClick={() => navigate("/login")}
-              className="px-4 py-2 text-sm font-medium text-uni-text hover:text-white transition-colors"
+              className="hidden sm:block px-4 py-2 text-sm font-medium text-uni-text hover:text-white transition-colors"
             >
               {t("nav.login")}
             </button>
             <button
               onClick={() => navigate("/register")}
-              className="px-4 py-2 text-sm font-bold text-uni-on-accent rounded-lg bg-brand shadow-bubble hover:shadow-glow transition-all"
+              className="px-3 sm:px-4 py-2 text-sm font-bold text-uni-on-accent rounded-lg bg-brand shadow-bubble hover:shadow-glow transition-all whitespace-nowrap"
             >
               {t("nav.getStarted")}
             </button>
