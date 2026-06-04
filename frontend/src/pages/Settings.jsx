@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   collection,
@@ -14,6 +14,7 @@ import { db } from "@/lib/firebase";
 import useUserStore from "@/store/userStore";
 import { supportedLanguages } from "@/components/common/Languages";
 import LoadingSpinner from "@/components/common/LoadingComponent";
+import Avatar from "@/components/ui/Avatar";
 
 // In-app profile editing (ROADMAP Phase 2). Pre-fills from the signed-in user's
 // `users/{uid}` doc and writes edits back. Username keeps its "@"-prefix +
@@ -21,8 +22,10 @@ import LoadingSpinner from "@/components/common/LoadingComponent";
 // language re-flows future translations automatically — Chat.jsx reads both
 // parties' languages live, so new messages translate to the new language with
 // no further action (older messages keep the translation they were sent with).
-// Avatar image upload is deferred (needs Firebase Storage rules); the initials
-// avatar follows `fullName`.
+// Avatar images are stored as a small base64 JPEG data URL on the user doc
+// (`avatarUrl`) — no Firebase Storage / paid bucket needed. The picker below
+// center-crops + downscales to a 128px thumbnail (~10-30 KB) so it stays well
+// within Firestore's 1 MiB doc limit and doesn't bloat the frequently-read doc.
 const FIELDS = [
   "fullName",
   "username",
@@ -32,7 +35,40 @@ const FIELDS = [
   "gender",
   "organization",
   "jobTitle",
+  "avatarUrl",
 ];
+
+// Max stored thumbnail dimension (square) and JPEG quality.
+const AVATAR_DIM = 128;
+
+// Read an image file, center-crop to a square, downscale to AVATAR_DIM, and
+// return a base64 JPEG data URL. Rejects non-images / unreadable files.
+const fileToAvatarDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    if (!file.type?.startsWith("image/")) {
+      reject(new Error("Please choose an image file."));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Couldn't read that file."));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("That image couldn't be loaded."));
+      img.onload = () => {
+        const side = Math.min(img.width, img.height);
+        const sx = (img.width - side) / 2;
+        const sy = (img.height - side) / 2;
+        const canvas = document.createElement("canvas");
+        canvas.width = AVATAR_DIM;
+        canvas.height = AVATAR_DIM;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, AVATAR_DIM, AVATAR_DIM);
+        resolve(canvas.toDataURL("image/jpeg", 0.7));
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
 
 const inputCls =
   "w-full bg-uni-surface border border-uni-border rounded-xl px-3 py-2.5 text-sm text-white outline-none focus:border-indigo-500/60 focus:shadow-[0_0_0_3px_rgba(99,102,241,0.15)] transition-all";
@@ -55,11 +91,6 @@ const Settings = () => {
     );
   }, [currentUser]);
 
-  const initials = useMemo(() => {
-    const first = form?.fullName?.split(" ")[0] || "";
-    return (first.charAt(0) || "") + (first.charAt(1)?.toUpperCase() || "");
-  }, [form?.fullName]);
-
   if (!currentUser || !form) {
     return (
       <div className="flex items-center justify-center h-screen bg-uni-bg text-uni-text">
@@ -70,6 +101,24 @@ const Settings = () => {
 
   const set = (field) => (e) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
+
+  const handleAvatarPick = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // let the user re-pick the same file later
+    if (!file) return;
+    try {
+      const dataUrl = await fileToAvatarDataUrl(file);
+      setForm((f) => ({ ...f, avatarUrl: dataUrl }));
+      setErrors((er) => ({ ...er, avatar: undefined }));
+    } catch (err) {
+      setErrors((er) => ({
+        ...er,
+        avatar: err.message || "Couldn't use that image.",
+      }));
+    }
+  };
+
+  const removeAvatar = () => setForm((f) => ({ ...f, avatarUrl: "" }));
 
   const validate = () => {
     const e = {};
@@ -141,12 +190,46 @@ const Settings = () => {
       <form onSubmit={handleSave} className="max-w-2xl mx-auto px-4 md:px-6 py-6 space-y-8">
         {/* Avatar + identity summary */}
         <section className="flex items-center gap-4">
-          <div className="user-avatar !w-16 !h-16 text-xl shrink-0">{initials || "U"}</div>
+          <div className="relative shrink-0">
+            <Avatar
+              name={form.fullName}
+              avatarUrl={form.avatarUrl}
+              className="!w-16 !h-16 text-xl"
+            />
+            <label
+              className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-uni-surface2 border border-uni-border flex items-center justify-center cursor-pointer hover:border-indigo-500/60 transition-colors"
+              title="Change photo"
+            >
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarPick}
+                aria-label="Upload profile photo"
+              />
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                <circle cx="12" cy="13" r="4" />
+              </svg>
+            </label>
+          </div>
           <div className="min-w-0">
             <p className="text-sm font-semibold text-white truncate">
               {form.fullName || "Your name"}
             </p>
             <p className="text-xs text-uni-muted truncate">{currentUser.email}</p>
+            {form.avatarUrl && (
+              <button
+                type="button"
+                onClick={removeAvatar}
+                className="mt-1 text-xs text-uni-muted hover:text-red-400 transition-colors"
+              >
+                Remove photo
+              </button>
+            )}
+            {errors.avatar && (
+              <p className="mt-1 text-xs text-red-400">{errors.avatar}</p>
+            )}
           </div>
         </section>
 

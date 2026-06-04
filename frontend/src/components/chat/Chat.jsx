@@ -16,6 +16,7 @@ import { isUserOnline } from "@/hooks/usePresence";
 import { sendChatMessage } from "@/services/messages";
 import MessageBubble from "@/components/chat/MessageBubble";
 import { SendIcon, EmojiIcon, Arrow } from "@/components/ui/icons";
+import Avatar from "@/components/ui/Avatar";
 
 // How many messages to load initially and per "load older" click.
 const PAGE_SIZE = 25;
@@ -193,10 +194,11 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
             Unicomm
           </span>
           <span className="hidden sm:block w-px h-5 bg-uni-border" />
-          <div className="user-avatar !w-10 !h-10 text-sm">
-            {(user?.fullName?.charAt(0) || "") +
-              (user?.fullName?.charAt(1)?.toUpperCase() || "")}
-          </div>
+          <Avatar
+            user={effectiveReceiver}
+            className="!w-10 !h-10 text-sm"
+            fallback="?"
+          />
           <div className="flex flex-col leading-tight min-w-0">
             <span className="text-sm md:text-base font-semibold text-white truncate">
               {user?.fullName || "Select a chat"}
