@@ -1,4 +1,4 @@
-﻿import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+﻿import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Intro from "./pages/Intro";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -85,6 +85,11 @@ function App() {
                     <LoadingSpinner />
                     <span className="text-sm text-uni-muted">Loading…</span>
                   </div>
+                ) : currentUser && !currentUser.username ? (
+                  // Authenticated but no profile yet (a freshly registered
+                  // account has only fullName/email): force profile setup before
+                  // chat, so a new user can't slip into the app half-onboarded.
+                  <Navigate to="/create-profile" replace />
                 ) : (
                   <ChatRoom />
                 )}

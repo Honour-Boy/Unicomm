@@ -5,8 +5,8 @@ import { showPass, hidePass } from "@/assets";
 import { db, auth } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import notify from "@/lib/toast";
+import Toaster from "@/components/ui/Toaster";
 import ReactMarkdown from "react-markdown";
 import privacy from "@/components/common/PrivacyPolicy.md";
 import terms from "@/components/common/Terms.md";
@@ -79,11 +79,12 @@ function Register() {
       });
       // No userchats doc to seed: the index lives in the userchats/{uid}/items
       // subcollection, written server-side (rules deny client userchats writes).
-      toast.success(t("register.accountCreated"));
-      setTimeout(() => navigate("/create-profile"), 1500);
+      // Routing takes it from here: onAuthStateChanged flips the session, and
+      // the /chat guard bounces a profile-less new user to /create-profile.
+      navigate("/create-profile");
     } catch (error) {
       console.error(error);
-      toast.error(t("register.registrationFailed"));
+      notify.error(t("register.registrationFailed"));
     } finally {
       setLoading(false);
     }
@@ -243,7 +244,7 @@ function Register() {
             </Link>
           </p>
         </form>
-        <ToastContainer position="top-center" theme="dark" />
+        <Toaster />
       </AuthLayout>
     </>
   );

@@ -343,7 +343,9 @@ const Chat = ({ onHeaderClick, detailOpen }) => {
               }}
             />
 
-            <div className="relative">
+            {/* Emoji picker is desktop-only — phones have a native keyboard
+                emoji button, and the picker overlay is cramped on small screens. */}
+            <div className="relative hidden sm:block">
               <button
                 type="button"
                 onClick={() => !isReceiverBlocked && setOpenEmoji((p) => !p)}
