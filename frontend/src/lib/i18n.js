@@ -14,16 +14,15 @@ import LanguageDetector from "i18next-browser-languagedetector";
 
 import en from "@/locales/en.json";
 
-// UI languages with a hand-written catalog. The goal is to cover all 30 chat
+// UI languages with a hand-written catalog — kept in sync with the 30 chat
 // languages the translation backend serves (Languages.js `supported`) so a user
-// can't pick a language whose interface silently stays English. 16 catalogs are
-// still OUTSTANDING (bn, el, fa, he, hi, hu, id, ja, ko, ms, sv, th, tl, tr, ur,
-// vi) — see docs/handoff.md. Keep UI_LANGUAGES and `loaders` aligned with the
-// JSON files actually present in locales/, or the build fails to resolve a
-// missing dynamic import.
+// can't pick a language whose interface silently stays English. Keep
+// UI_LANGUAGES and `loaders` aligned with the JSON files in locales/, or the
+// build fails to resolve a missing dynamic import.
 export const UI_LANGUAGES = [
-  "ar", "cs", "de", "en", "es", "fr", "it",
-  "nl", "pl", "pt", "ro", "ru", "uk", "zh",
+  "ar", "bn", "cs", "de", "el", "en", "es", "fa", "fr", "he",
+  "hi", "hu", "id", "it", "ja", "ko", "ms", "nl", "pl", "pt",
+  "ro", "ru", "sv", "th", "tl", "tr", "uk", "ur", "vi", "zh",
 ];
 
 // Codes that render right-to-left (kept here so adding an RTL catalog is a
@@ -34,17 +33,33 @@ const RTL_LANGUAGES = ["ar", "he", "fa", "ur"];
 // the initial bundle ships only English regardless of how many we support.
 const loaders = {
   ar: () => import("@/locales/ar.json"),
+  bn: () => import("@/locales/bn.json"),
   cs: () => import("@/locales/cs.json"),
   de: () => import("@/locales/de.json"),
+  el: () => import("@/locales/el.json"),
   es: () => import("@/locales/es.json"),
+  fa: () => import("@/locales/fa.json"),
   fr: () => import("@/locales/fr.json"),
+  he: () => import("@/locales/he.json"),
+  hi: () => import("@/locales/hi.json"),
+  hu: () => import("@/locales/hu.json"),
+  id: () => import("@/locales/id.json"),
   it: () => import("@/locales/it.json"),
+  ja: () => import("@/locales/ja.json"),
+  ko: () => import("@/locales/ko.json"),
+  ms: () => import("@/locales/ms.json"),
   nl: () => import("@/locales/nl.json"),
   pl: () => import("@/locales/pl.json"),
   pt: () => import("@/locales/pt.json"),
   ro: () => import("@/locales/ro.json"),
   ru: () => import("@/locales/ru.json"),
+  sv: () => import("@/locales/sv.json"),
+  th: () => import("@/locales/th.json"),
+  tl: () => import("@/locales/tl.json"),
+  tr: () => import("@/locales/tr.json"),
   uk: () => import("@/locales/uk.json"),
+  ur: () => import("@/locales/ur.json"),
+  vi: () => import("@/locales/vi.json"),
   zh: () => import("@/locales/zh.json"),
 };
 const loaded = new Set(["en"]);
